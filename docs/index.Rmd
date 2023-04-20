@@ -44,7 +44,7 @@ filtro_Orgao <- filter_select("Orgao",
 filtro_funcao <- filter_select("Funcao", 
                                  "Selecione um ou mais Cargos-Funções", 
                                  sd_total, 
-                                 ~`Cargo-Função`
+                                 ~`Cargo-Função`, multiple = FALSE
                                  #inline = TRUE,
                                  #columns = 1
                                  )
@@ -114,12 +114,12 @@ dt <- sd_total |>
       deferRender = TRUE,
       scrollY = 300,
       scroller = TRUE,
-      # columnDefs = list(
-      #   list(
-      #     visible = FALSE,
-      #     targets = c(7)
-      #   )
-      # ), 
+      columnDefs = list(
+        list(
+          visible = FALSE,
+          targets = c("Fem", "Mas")
+        )
+      ),
       buttons = list(
         I("colvis"),  # turn columns on and off
         "csv",  # download as .csv
@@ -147,7 +147,10 @@ bscols(
 function filter_default() {
     document.getElementById("Orgao").getElementsByClassName("selectized") 
 [0].selectize.setValue("Advocacia-Geral Da Uniao", false);
+    document.getElementById("Funcao").getElementsByClassName("selectized") 
+[0].selectize.setValue("FCPE &amp; FEX", false);
  }
 window.onload = filter_default;
-
 ```
+
+
