@@ -58,10 +58,10 @@ filtro_funcao <- filter_select("Funcao",
 
 bars_fem <- plot_ly(sd_total, x = ~Etnia, y = ~Fem, color = ~`Cargo-Função`)  |> 
   add_bars(width=0.8,
-           x =  ~Etinia,
+           x =  ~Etnia,
            y =  ~Fem,
            color = ~`Cargo-Função`,#I("#89CFF0"),
-           colors = c("#045A8D" ,"black"),
+           colors = c("#045A8D" ,"#4682B4", "#00008B"),
            name = ~`Cargo-Função`,
            opacity=.9,
            hoverinfo = 'y',
@@ -73,7 +73,7 @@ bars_fem <- plot_ly(sd_total, x = ~Etnia, y = ~Fem, color = ~`Cargo-Função`)  
 
 bars_mas <- plot_ly(sd_total, x = ~Etinia, y = ~Mas, color = ~`Cargo-Função`)  |> 
   add_bars(width=0.8,
-           x =  ~Etinia,
+           x =  ~Etnia,
            y =  ~Mas,
            color = ~`Cargo-Função`,#I("#89CFF0"),
            colors = c("#045A8D" ,"#4682B4", "#00008B"),
@@ -81,8 +81,8 @@ bars_mas <- plot_ly(sd_total, x = ~Etinia, y = ~Mas, color = ~`Cargo-Função`) 
            opacity=.9,
            hoverinfo = 'y',
            hovertemplate = paste('%{x} <br> Masculino: %{y}<extra></extra>')
-  ) |> layout(title = 'Poder Executivo Federal',
-         xaxis = list(title = "Sexo Feminino"),
+  ) |> layout(
+         xaxis = list(title = "Masculino"),
          yaxis = list(title = "")) |> 
   layout(barmode = "stack") #|> hide_legend()
 
@@ -130,9 +130,10 @@ dt <- sd_total |>
 # create final output ----
 bscols(
   filtro_Orgao,
-  fig,
+  bars_fem,
+  bars_mas,
   dt, 
-  widths = c(12, 12, 12))
+  widths = c(12, 12, 12, 12))
 ```
 
 ```{js echo=FALSE, message=FALSE, warning=FALSE}
