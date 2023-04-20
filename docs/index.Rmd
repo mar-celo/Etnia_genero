@@ -42,7 +42,7 @@ filtro_Orgao <- filter_select("Orgao",
                               )
 
 filtro_funcao <- filter_select("Funcao", 
-                                 "Selecione um ou mais Cargos-Funções", 
+                                 "Selecione um Cargo-Função", 
                                  sd_total, 
                                  ~`Cargo-Função`, multiple = FALSE
                                  #inline = TRUE,
