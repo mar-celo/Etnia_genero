@@ -37,6 +37,21 @@ tabela <- funcoes_mar_23 |> group_by(
     #dados_id = dplyr::row_number()
   )
 
+# Percentual das funcoes por etnia
+
+tabela <- tabela |>
+  # filter(Orgão == "Advocacia-Geral Da Uniao",
+  #        `Cargo-Função` == "FCPE & FEX"
+  #        ) |> 
+  group_by(Orgão,  `Cargo-Função`) |> 
+  mutate(
+    `% Cargo-Função/Etnia` = scales::percent(Total/sum(Total, na.rm = TRUE))
+  ) 
+  
+  
+
+
+
 # base para gerar mapas
 #DADOS_LAT_LONG_ESTADOS <- read_excel("src/DADOS_LAT_LONG_ESTADOS.xlsx")
 
