@@ -23,13 +23,17 @@ tabela <- funcoes_mar_23 |> group_by(
   ) |> ungroup() |> 
   rename(
     `Orgão` = `Orgão Vinculado (Cargos e Funçõe`,
-    Etinia = `Nome Cor Origem Etnica`, 
+    Etnia = `Nome Cor Origem Etnica`, 
     `Cargo-Função` = Agrupamento2
   ) |> 
   tidyr::pivot_wider(names_from =Sexo,
                      values_from = total) |> 
   mutate(
-    Total = Fem + Mas
+    Total = Fem + Mas, 
+    Etnia = factor(Etnia, 
+                   levels = c(
+                     "BRANCA","PARDA", "PRETA", "AMARELA","INDIGENA", "NAO INFORMADO")
+    )
     #dados_id = dplyr::row_number()
   )
 

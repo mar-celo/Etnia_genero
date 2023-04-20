@@ -36,7 +36,7 @@ filtro_Orgao <- filter_select("Orgao",
                               )
 
 filtro_funcao <- filter_select("Funcao", 
-                                 "Selecione Cargos-Funções", 
+                                 "Selecione um ou mais Cargos-Funções", 
                                  sd_total, 
                                  ~`Cargo-Função`
                                  #inline = TRUE,
@@ -56,31 +56,31 @@ filtro_funcao <- filter_select("Funcao",
 #   borderwidth = 1,
 #   title=list(text='<b> Cargos e Funções </b>'))
 
-bars_fem <- plot_ly(sd_total, x = ~Etnia, y = ~Fem, color = ~`Cargo-Função`)  |> 
+bars_fem <- plot_ly(sd_total)  |> 
   add_bars(width=0.8,
            x =  ~Etnia,
            y =  ~Fem,
-           color = ~`Cargo-Função`,#I("#89CFF0"),
-           colors = c("#045A8D" ,"#4682B4", "#00008B"),
-           name = ~`Cargo-Função`,
-           opacity=.9,
-           hoverinfo = 'y',
-           hovertemplate = paste('%{x} <br> Sexo Feminino: %{y}<extra></extra>')
+           #color = ~`Cargo-Função`,#I("#89CFF0"),
+           colors =  brewer.pal(n = 10, name = "PuBu"),
+           text = ~`Cargo-Função`,
+           #name = ~`Cargo-Função`,
+           opacity=1,
+           hovertemplate = paste('%{x} <br> Sexo Feminino: %{y}<extra></extra><br> %{text}')
   ) |> layout(
          xaxis = list(title = "Feminino"),
          yaxis = list(title = "")) |> 
   layout(barmode = "stack") #|> hide_legend()
 
-bars_mas <- plot_ly(sd_total, x = ~Etinia, y = ~Mas, color = ~`Cargo-Função`)  |> 
+bars_mas <- plot_ly(sd_total)  |> 
   add_bars(width=0.8,
            x =  ~Etnia,
            y =  ~Mas,
-           color = ~`Cargo-Função`,#I("#89CFF0"),
-           colors = c("#045A8D" ,"#4682B4", "#00008B"),
-           name = ~`Cargo-Função`,
-           opacity=.9,
-           hoverinfo = 'y',
-           hovertemplate = paste('%{x} <br> Masculino: %{y}<extra></extra>')
+           #color = ~`Cargo-Função`,#I("#89CFF0"),
+           colors =  brewer.pal(n = 10, name = "PuBu"),
+           text = ~`Cargo-Função`,
+           #name = ~`Cargo-Função`,
+           opacity=1,
+           hovertemplate = paste('%{x} <br> Sexo Masculino: %{y}<extra></extra><br> %{text}')
   ) |> layout(
          xaxis = list(title = "Masculino"),
          yaxis = list(title = "")) |> 
@@ -130,10 +130,11 @@ dt <- sd_total |>
 # create final output ----
 bscols(
   filtro_Orgao,
+  filtro_funcao,
   bars_fem,
   bars_mas,
   dt, 
-  widths = c(12, 12, 12, 12))
+  widths = c(6, 6, 12, 12, 12))
 ```
 
 ```{js echo=FALSE, message=FALSE, warning=FALSE}
