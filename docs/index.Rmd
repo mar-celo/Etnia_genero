@@ -56,7 +56,7 @@ filtro_funcao <- filter_select("Funcao",
 #   borderwidth = 1,
 #   title=list(text='<b> Cargos e Funções </b>'))
 
-bars_fem <- plot_ly(sd_total, x = ~Etinia, y = ~Fem, color = ~`Cargo-Função`)  |> 
+bars_fem <- plot_ly(sd_total, x = ~Etnia, y = ~Fem, color = ~`Cargo-Função`)  |> 
   add_bars(width=0.8,
            x =  ~Etinia,
            y =  ~Fem,
