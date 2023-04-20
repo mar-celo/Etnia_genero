@@ -1,0 +1,44 @@
+---
+title: "Crosstalk+Plotly bargraph selection"
+---
+
+
+
+```{r ,include=FALSE}
+
+#options(stringsAsFactors = FALSE)
+library(crosstalk) 
+library(dplyr)
+library(plotly)  
+
+#data on cities' population
+city_pop <- data.frame("City" = c("Florence",  "Milan", "Venice"),
+                       "Population" = c(382258, 1352000, 261905))
+
+#setting up Crosstalk shared data
+sd <- SharedData$new(city_pop, key = city_pop$city)
+
+#filter for the cities
+filt <- filter_select(
+  id = "select_name",
+  label = "Selected City",
+  sharedData = sd,
+  group = ~City)
+ # selected = "")
+
+#barplot of cities' population
+bars_pop <- plot_ly(sd, x = ~City, y = ~Population) %>% 
+  add_bars(width=0.2,
+           x =  ~City,
+           y =  ~Population,
+           color = I("#89CFF0"),
+           name = "",
+           opacity=.9,
+           hoverinfo = 'y',
+           hovertemplate = paste('%{x} <br> number of Residents: %{y}<extra></extra>')
+  ) 
+
+
+bscols(filt, bars_pop)
+```
+

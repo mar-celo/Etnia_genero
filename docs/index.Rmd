@@ -1,0 +1,145 @@
+---
+output: 
+  html_document:
+    theme: bootstrap
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FALSE)
+```
+
+```{r pkg-load}
+library(dplyr)
+library(leaflet)
+library(DT)
+library(ggplot2)
+library(plotly)
+library(crosstalk)
+library(readxl)
+library(RColorBrewer)
+```
+
+```{r data-load}
+
+dados <- readRDS("../data/Tab.rds") 
+
+sd_total <- SharedData$new(dados, group = "dados_subset")
+
+```
+
+```{r}
+filtro_Orgao <- filter_select("Orgao", 
+                              "Selecione um Órgão", 
+                              sd_total, 
+                              ~`Orgão`,
+                              multiple = FALSE
+                              )
+
+filtro_funcao <- filter_select("Funcao", 
+                                 "Selecione Cargos-Funções", 
+                                 sd_total, 
+                                 ~`Cargo-Função`
+                                 #inline = TRUE,
+                                 #columns = 1
+                                 )
+
+
+# l <- list(
+#   font = list(
+#     family = "sans-serif",
+#     size = 12,
+#     color = "#333"),
+#   bgcolor = "white",
+#   bordercolor = "white",
+#   x = 0, y = 1,
+#   orientation = "h",
+#   borderwidth = 1,
+#   title=list(text='<b> Cargos e Funções </b>'))
+
+bars_fem <- plot_ly(sd_total, x = ~Etinia, y = ~Fem, color = ~`Cargo-Função`)  |> 
+  add_bars(width=0.8,
+           x =  ~Etinia,
+           y =  ~Fem,
+           color = ~`Cargo-Função`,#I("#89CFF0"),
+           colors = c("#045A8D" ,"black"),
+           name = ~`Cargo-Função`,
+           opacity=.9,
+           hoverinfo = 'y',
+           hovertemplate = paste('%{x} <br> Sexo Feminino: %{y}<extra></extra>')
+  ) |> layout(
+         xaxis = list(title = "Feminino"),
+         yaxis = list(title = "")) |> 
+  layout(barmode = "stack") #|> hide_legend()
+
+bars_mas <- plot_ly(sd_total, x = ~Etinia, y = ~Mas, color = ~`Cargo-Função`)  |> 
+  add_bars(width=0.8,
+           x =  ~Etinia,
+           y =  ~Mas,
+           color = ~`Cargo-Função`,#I("#89CFF0"),
+           colors = c("#045A8D" ,"#4682B4", "#00008B"),
+           name = ~`Cargo-Função`,
+           opacity=.9,
+           hoverinfo = 'y',
+           hovertemplate = paste('%{x} <br> Masculino: %{y}<extra></extra>')
+  ) |> layout(title = 'Poder Executivo Federal',
+         xaxis = list(title = "Sexo Feminino"),
+         yaxis = list(title = "")) |> 
+  layout(barmode = "stack") #|> hide_legend()
+
+#fig <- subplot(bars_fem, bars_mas)  |>  
+  # layout(title = 'Poder Executivo Federal')
+
+
+# table
+
+dt <- sd_total |> 
+  DT::datatable(
+    filter = "top",  # allows filtering on each column
+    extensions = c(
+      "Buttons",  # add download buttons, etc
+      "Scroller"  # for scrolling down the rows rather than pagination
+    ),
+    rownames = FALSE,  # remove rownames
+    style = "bootstrap",
+    class = "compact",
+    width = "100%",
+    options = list(
+      dom = "Blrtip",  # specify content (search box, etc)
+      deferRender = TRUE,
+      scrollY = 300,
+      scroller = TRUE,
+      # columnDefs = list(
+      #   list(
+      #     visible = FALSE,
+      #     targets = c(7)
+      #   )
+      # ), 
+      buttons = list(
+        I("colvis"),  # turn columns on and off
+        "csv",  # download as .csv
+        "excel"  # download as .xlsx
+      )
+    )
+  )
+
+```
+
+### Filtros
+
+```{r}
+# create final output ----
+bscols(
+  filtro_Orgao,
+  fig,
+  dt, 
+  widths = c(12, 12, 12))
+```
+
+```{js echo=FALSE, message=FALSE, warning=FALSE}
+function filter_default() {
+    document.getElementById("Orgao").getElementsByClassName("selectized") 
+[0].selectize.setValue("Advocacia-Geral Da Uniao", false);
+ }
+window.onload = filter_default;
+
+```

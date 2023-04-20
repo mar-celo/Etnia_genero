@@ -1,0 +1,52 @@
+---
+output:
+  html_document
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+
+library(plotly)
+# example data 
+dat <- tibble::tribble(~filterBy, ~x, ~y,
+                    "a", 1, 1,
+                    "b", 2, 1,
+                    "a", 1, 2,
+                    "b", 2, 2,
+                    "a", 1, 3,
+                    "b", 2, 3,
+                    "a", 1, 2,
+                    "b", 2, 3,
+                    "c", 3, 1,
+                    "c", 3, 2,
+                    "c", 3, 3
+                    )  
+
+# initializing a crosstalk shared data object  
+plotdat <- highlight_key(dat)
+
+# Filter dropdown
+question_filter <- crosstalk::filter_select(
+   "filter", "Select a group to examine",
+   plotdat, ~filterBy, multiple = F
+)
+
+# Plotting:
+plot <-  plot_ly( plotdat, 
+    x = ~x, y = ~y, text = ~filterBy,  mode = "markers+text", 
+    textposition = "top", hoverinfo = "x+y"
+  )
+
+crosstalk::bscols(
+  question_filter,
+  plot,  
+  widths = c(12, 12))
+```
+
+```{js echo=FALSE, message=FALSE, warning=FALSE}
+function filter_default() {
+    document.getElementById("filter").getElementsByClassName("selectized") 
+[0].selectize.setValue("b", false);
+ }
+window.onload = filter_default;
+```
