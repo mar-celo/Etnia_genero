@@ -61,71 +61,164 @@ tabela <- tabela |>
 # Salvar base tratada
 saveRDS(tabela, "data/Tab.rds")
 
-# Rascunho ----------------------------------------------------------------
+
+# Dados Gerais ------------------------------------------------------------
+
+Etnia_funcao <- read_excel("src/Etnia_funcao.xlsx", 
+                           col_types = c("date", "text", "text", 
+                                         "text", "numeric"))
+Etnia_funcao <- Etnia_funcao |> 
+  tidyr::pivot_wider(names_from =Sexo, values_from = Total) |> 
+  rowwise()  |> 
+  mutate(
+    Total = sum(c_across(Fem:Mas), na.rm = TRUE
+    )
+  )
+
+graf <- Etnia_funcao |> 
+  dplyr::select(-Fem, -Mas) |> 
+  dplyr::filter(Data > "2017-12-01" ) |> 
+  group_by(Data, Agrupamento2) |> 
+  mutate(
+    `% Cargo-Função/Etnia` = formattable::percent(Total/sum(Total, na.rm = TRUE))
+  ) |> select(-Total) |> 
+  tidyr::pivot_wider(names_from =Etnia,
+                     values_from = `% Cargo-Função/Etnia`) |> 
+  #dplyr::filter(Agrupamento2== "FCPE & FEX") |> 
+  dplyr::ungroup() 
+
+# Salvar base tratada
+saveRDS(graf, "data/serie.rds")
+  
+sd_total <- SharedData$new(graf_fem, group = "dados_subset")  
+filtro_funcao <- filter_select("Funcao", 
+                               "Selecione um Cargo-Função", 
+                               sd_total, 
+                               ~Agrupamento2,
+                               multiple = FALSE)
+ 
+ax <- list(
+  title = "",
+  zeroline = FALSE,
+  showline = FALSE,
+  showticklabels = FALSE
+)
 
 
-tab2 <- tabela |>
-  tidyr::pivot_wider(names_from =Sexo,
-                     values_from = total) |> 
-  mutate(Total = Fem + Mas) |> 
-  filter(
-    `Orgão Vinculado (Cargos e Funçõe` == "Advocacia-Geral Da Uniao"
-  ) 
-
-tab3 <- tabela |> 
-  filter(
-    `Orgão Vinculado (Cargos e Funçõe` == "Advocacia-Geral Da Uniao",
-    
-  ) 
+fig1 <- plot_ly(sd_total, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~BRANCA, name = ~Agrupamento2)%>%
+  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,.8), title = ''))
 
 
-ggplot(tab3) +
-  aes(x = `Orgão Vinculado (Cargos e Funçõe`, y = total, fill = `Nome Cor Origem Etnica`) +
-  geom_col() +
-  scale_fill_manual(values = c(AMARELA = "#F8766D", BRANCA = "#93AA00", `NAO INFORMADO` = "#00C19F",
-                               PARDA = "#619CFF", PRETA = "#FF61C3")) +
-  labs(x = "x", y = "y", title = "Titulo", subtitle = "Subtitle",
-       caption = "caption", fill = "Origem Étnica") +
-  theme_minimal() +
-  facet_wrap(vars(Sexo)) 
-#coord_flip() +
-
-tab3 |> group_by(`Nome Cor Origem Etnica`) |> 
-  do(p=plot_ly(., x = ~`Orgão Vinculado (Cargos e Funçõe`, 
-               y = ~total, 
-               color = ~Sexo, type = "bar")) |> 
-  subplot(nrows = 3, shareX = TRUE, shareY = TRUE)
+fig2 <- plot_ly(sd_total, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~PARDA, name = ~Agrupamento2)%>%
+  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.8),title = '', showticklabels = TRUE))
 
 
-l <- list(
-  font = list(
-    family = "sans-serif",
-    size = 10,
-    color = "green"),
-  bgcolor = "#E2E2E2",
-  bordercolor = "white",
-  x = 0, y = 1,
-  orientation = "h",
-  borderwidth = 3,
-  title=list(text='<b> Cargos e Funções </b>'))
-
-library("RColorBrewer")
-
-plot_ly(tab3, x = ~`Orgão Vinculado (Cargos e Funçõe`, 
-        y = ~total, 
-        color = ~`Nome Cor Origem Etnica`, 
-        colors = brewer.pal(n = 8, name = "PuBu")
-)  |> 
-  add_bars(  ) |> 
-  layout(barmode = "group",
-         title = "A Fruity Bar Plot",
-         legend = l)
-
-library(plotly)
-iris |> 
-  group_by(Species)  |> 
-  do(p=plot_ly(., x = ~Sepal.Length, y = ~Sepal.Width, color = ~Species, type = "scatter")) %>%
-  subplot(nrows = 1, shareX = TRUE, shareY = TRUE)
+fig3 <- plot_ly(sd_total, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~PRETA, name = ~Agrupamento2)%>%
+  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.3), title = 'Decreto'))
 
 
-"#FFF7FB" "#ECE7F2" "#D0D1E6" "#A6BDDB" "#74A9CF" "#3690C0" "#0570B0" "#034E7B"
+fig4 <- plot_ly(sd_total, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~AMARELA, name = ~Agrupamento2)%>%
+  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.3),title = '', showticklabels = TRUE))
+
+
+fig5 <- plot_ly(sd_total, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~INDIGENA, name = ~Agrupamento2)%>%
+  layout(legend=list(title=list(text='Cor/Raça-Etnia')),  yaxis = list(range = c(0.0,0.1),title = '', showticklabels = TRUE), xaxis = list(title = 'Data'))
+
+
+fig6 <- plot_ly(sd_total, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~`NAO INFORMADO`, name = ~Agrupamento2)%>%
+  layout( legend=list(title=list(text='Cor/Raça-Etnia')), yaxis = list(range = c(0.0,0.1) ,showticklabels = TRUE, title =''),  xaxis = list(title = 'Data'))
+
+
+fig <- subplot(fig1, fig2, fig3, fig4, fig5, fig6,
+               nrows = 3, titleY = TRUE, titleX = TRUE) %>% layout(
+                 xaxis = list(zerolinecolor = '#ffff',
+                              zerolinewidth = 2,
+                              gridcolor = 'ffff'),
+                 yaxis = list(zerolinecolor = '#ffff',
+                              zerolinewidth = 2,
+                              gridcolor = 'ffff'),
+                 plot_bgcolor='#e5ecf6')
+annotations = list(
+  list(
+    x = 0.225,
+    y = 1.0,
+    font = list(size = 10),
+    text = "Branca",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  ),
+  list(
+    x = 0.775,
+    y = 1,
+    font = list(size = 10),
+    text = "Parda",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  ),
+  list(
+    x = 0.225,
+    y = 0.64,
+    font = list(size = 10),
+    text = "Preta",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  ),
+  list(
+    x = 0.775,
+    y = 0.64,
+    font = list(size = 10),
+    text = "Amarela",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  ),
+  list(
+    x = 0.225,
+    y = 0.315,
+    font = list(size = 10),
+    text = "Indígena",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  ),
+  list(
+    x = 0.775,
+    y = 0.315,
+    font = list(size = 10),
+    text = "Não Informado",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  )
+)
+
+fig <- fig %>%layout(annotations = annotations, width = 1000)|> hide_legend()
+options(warn = -1)
+fig
+
+bscols(
+  filtro_funcao,
+  fig,
+  widths = c(12, 12))
+

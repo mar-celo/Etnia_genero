@@ -1,4 +1,5 @@
 ---
+title: "Cor/Raça e Funções"
 output: 
   html_document:
     theme: bootstrap
@@ -26,6 +27,8 @@ library(RColorBrewer)
 ```
 
 ```{r data-load}
+
+#Por órgão 
 
 dados <- readRDS("../data/Tab.rds") 
 
@@ -130,7 +133,280 @@ dt <- sd_total |>
 
 ```
 
-### Filtros
+
+
+```{r}
+
+dados_geral <- dados |> 
+  dplyr::group_by(
+    Etnia, `Cargo-Função`) |> 
+  dplyr::summarise(
+    Fem = sum(Fem, na.rm = TRUE),
+    Mas = sum(Mas, na.rm = TRUE), 
+    Total = sum(Total, na.rm = TRUE)
+  ) |> 
+  dplyr::ungroup() |> 
+   group_by(`Cargo-Função`) |> 
+  mutate(
+    `% Cargo-Função/Etnia` = scales::percent(Total/sum(Total, na.rm = TRUE))
+  ) 
+
+sd_Etnia <- SharedData$new(dados_geral)
+
+```
+
+
+```{r}
+funcao2 <- filter_select("Funcao2", 
+                                 "Selecione um Cargo-Função", 
+                                 sd_Etnia, 
+                                 ~`Cargo-Função`, multiple = FALSE
+                                 #inline = TRUE,
+                                 #columns = 1
+                                 )
+
+bars_fem2 <- plot_ly(sd_Etnia)  |> 
+  add_bars(width=0.8,
+           x =  ~Etnia,
+           y =  ~Fem,
+           #color = ~`Cargo-Função`,#I("#89CFF0"),
+           colors =  brewer.pal(n = 10, name = "PuBu"),
+           text = ~`Cargo-Função`,
+           name = "Fem",
+           opacity=1,
+           hovertemplate = paste('%{x} <br> Sexo Feminino: %{y}<extra></extra><br> %{text}')
+  ) |> layout(
+         xaxis = list(title = "Feminino"),
+         yaxis = list(title = "")) |> 
+  layout(barmode = "stack") |> 
+  add_bars(width=0.8,
+           x =  ~Etnia,
+           y =  ~Mas,
+           #color = ~`Cargo-Função`,#I("#89CFF0"),
+           colors =  brewer.pal(n = 10, name = "PuBu"),
+           text = ~`Cargo-Função`,
+           name = "Mas",
+           opacity=1,
+           hovertemplate = paste('%{x} <br> Sexo Masculino: %{y}<extra></extra><br> %{text}')
+  ) |> layout(
+         xaxis = list(title = "Cor/Raça - Etnias"),
+         yaxis = list(title = "")) |> 
+  layout(barmode = "stack") #|> hide_legend() 
+
+# bars_mas2 <- plot_ly(sd_Etnia)  |> 
+#   add_bars(width=0.8,
+#            x =  ~Etnia,
+#            y =  ~Mas,
+#            #color = ~`Cargo-Função`,#I("#89CFF0"),
+#            colors =  brewer.pal(n = 10, name = "PuBu"),
+#            text = ~`Cargo-Função`,
+#            #name = ~`Cargo-Função`,
+#            opacity=1,
+#            hovertemplate = paste('%{x} <br> Sexo Masculino: %{y}<extra></extra><br> %{text}')
+#   ) |> layout(
+#          xaxis = list(title = "Masculino"),
+#          yaxis = list(title = "")) |> 
+#   layout(barmode = "stack") #|> hide_legend()
+
+#fig <- subplot(bars_fem, bars_mas)  |>  
+  # layout(title = 'Poder Executivo Federal')
+
+
+# table
+
+dt2 <- sd_Etnia |> 
+  DT::datatable(
+    filter = "top",  # allows filtering on each column
+    extensions = c(
+      "Buttons",  # add download buttons, etc
+      "Scroller"  # for scrolling down the rows rather than pagination
+    ),
+    rownames = FALSE,  # remove rownames
+    style = "bootstrap",
+    class = "compact",
+    width = "100%",
+    options = list(
+      dom = "Blrtip",  # specify content (search box, etc)
+      deferRender = TRUE,
+      scrollY = 300,
+      scroller = TRUE,
+      columnDefs = list(
+        list(
+          visible = FALSE,
+          targets = c("Fem", "Mas")
+        )
+      ),
+      buttons = list(
+        I("colvis"),  # turn columns on and off
+        "csv",  # download as .csv
+        "excel"  # download as .xlsx
+      )
+    )
+  )
+
+```
+
+```{r}
+dados_serie <- readRDS("../data/serie.rds") 
+
+sd_serie <- SharedData$new(dados_serie, group = "dados_serie")  
+filtro_funcao3 <- filter_select("Funcao3", 
+                               "Selecione um Cargo-Função", 
+                               sd_serie, 
+                               ~Agrupamento2,
+                               multiple = FALSE)
+ 
+ax <- list(
+  title = "",
+  zeroline = FALSE,
+  showline = FALSE,
+  showticklabels = FALSE
+)
+
+
+fig1 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~BRANCA, name = ~Agrupamento2)%>%
+  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,.8), title = ''))
+
+
+fig2 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~PARDA, name = ~Agrupamento2)%>%
+  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.8),title = '', showticklabels = TRUE))
+
+
+fig3 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~PRETA, name = ~Agrupamento2)%>%
+  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.3), title = 'Decreto'))
+
+
+fig4 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~AMARELA, name = ~Agrupamento2)%>%
+  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.3),title = '', showticklabels = TRUE))
+
+
+fig5 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~INDIGENA, name = ~Agrupamento2)%>%
+  layout(legend=list(title=list(text='Cor/Raça-Etnia')),  yaxis = list(range = c(0.0,0.1),title = '', showticklabels = TRUE), xaxis = list(title = 'Data'))
+
+
+fig6 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+  add_trace(x = ~Data, y = ~`NAO INFORMADO`, name = ~Agrupamento2)%>%
+  layout( legend=list(title=list(text='Cor/Raça-Etnia')), yaxis = list(range = c(0.0,0.1) ,showticklabels = TRUE, title =''),  xaxis = list(title = 'Data'))
+
+
+fig <- subplot(fig1, fig2, fig3, fig4, fig5, fig6,
+               nrows = 3, titleY = TRUE, titleX = TRUE) %>% layout(
+                 xaxis = list(zerolinecolor = '#ffff',
+                              zerolinewidth = 2,
+                              gridcolor = 'ffff'),
+                 yaxis = list(zerolinecolor = '#ffff',
+                              zerolinewidth = 2,
+                              gridcolor = 'ffff'),
+                 plot_bgcolor='#e5ecf6')
+annotations = list(
+  list(
+    x = 0.225,
+    y = 1.0,
+    font = list(size = 10),
+    text = "Branca",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  ),
+  list(
+    x = 0.775,
+    y = 1,
+    font = list(size = 10),
+    text = "Parda",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  ),
+  list(
+    x = 0.225,
+    y = 0.64,
+    font = list(size = 10),
+    text = "Preta",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  ),
+  list(
+    x = 0.775,
+    y = 0.64,
+    font = list(size = 10),
+    text = "Amarela",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  ),
+  list(
+    x = 0.225,
+    y = 0.315,
+    font = list(size = 10),
+    text = "Indígena",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  ),
+  list(
+    x = 0.775,
+    y = 0.315,
+    font = list(size = 10),
+    text = "Não Informado",
+    xref = "paper",
+    yref = "paper",
+    xanchor = "center",
+    yanchor = "bottom",
+    showarrow = FALSE
+  )
+)
+
+fig <- fig %>%layout(annotations = annotations, width = 1000)|> hide_legend()
+options(warn = -1)
+
+
+
+```
+
+
+# Dados gerais
+
+% Pessoas Negras em Cargos Comissionados segundo critério estabelecido pelo Decreto nº  11.443, de 21 de março de 2023
+
+Obs.:CCE/FCE* Ainda não agrupadas - Para exemplo do gráficos foi utilizado o agrupamento *`Cargo-Função` == "FCPE & FEX"*
+
+```{r}
+# Cargo funçao por sexo
+bscols(
+  funcao2,
+  bars_fem2,
+  #bars_mas2,
+  dt2, 
+  widths = c(12, 12, 12))
+```
+
+# Série histórica 
+
+```{r}
+bscols(
+  filtro_funcao3,
+  fig,
+  widths = c(12, 12))
+  
+``` 
+
+### Filtre seu Órgão 
 
 ```{r}
 # create final output ----
@@ -149,8 +425,10 @@ function filter_default() {
 [0].selectize.setValue("Advocacia-Geral Da Uniao", false);
     document.getElementById("Funcao").getElementsByClassName("selectized") 
 [0].selectize.setValue("FCPE &amp; FEX", false);
+    document.getElementById("Funcao2").getElementsByClassName("selectized") 
+[0].selectize.setValue("FCPE &amp; FEX", false);
+    document.getElementById("Funcao3").getElementsByClassName("selectized") 
+[0].selectize.setValue("FCPE &amp; FEX", false);
  }
 window.onload = filter_default;
 ```
-
-
