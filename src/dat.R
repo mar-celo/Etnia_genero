@@ -28,14 +28,19 @@ tabela <- funcoes_mar_23 |> group_by(
   ) |> 
   tidyr::pivot_wider(names_from =Sexo,
                      values_from = total) |> 
+  rowwise()  |> 
   mutate(
-    Total = Fem + Mas, 
+    Total = sum(c_across(Fem:Mas), na.rm = TRUE
+    )
+  ) |>
+  mutate(
     Etnia = factor(Etnia, 
                    levels = c(
                      "BRANCA","PARDA", "PRETA", "AMARELA","INDIGENA", "NAO INFORMADO")
     )
-    #dados_id = dplyr::row_number()
   )
+    
+    
 
 # Percentual das funcoes por etnia
 
