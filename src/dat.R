@@ -13,18 +13,31 @@ funcoes_mar_23 <- read_excel("src/funcoes_mar_23.xlsx",
                                            "text", "text", "text", "text", "numeric", 
                                            "text", "text", "text", "text"))
 
+# Etnia = Negras(Preta +Pardo) e demais
+
+funcoes_mar_23 <- funcoes_mar_23 |> mutate(
+  Etnia = case_when( 
+     `Cor Origem Etnica` %in% c(4, 6)  ~ "Negras",
+    .default = "Demais Etnias"
+  )
+) 
+
+DE_PARA_FUNCOES <- read_excel("src/DE-PARA_FUNCOES.xlsx")|> janitor::clean_names()
+
+funcoes_mar_23 <- funcoes_mar_23 |> left_join(DE_PARA_FUNCOES, by = c("Nível Função2" = "funcao")) 
+
 # tratamento da base
 
 tabela <- funcoes_mar_23 |> group_by(
-  `Orgão Vinculado (Cargos e Funçõe`,
-  `Nome Cor Origem Etnica`,Sexo, Agrupamento2) |> 
+  `Natureza Jurídica`,
+  `Orgão Superior (Cargos e Funções`,
+  Etnia ,Sexo, decreto) |> 
   dplyr::summarise(
     total = sum(`Quantidade de Vinculos (Cargos e`)
   ) |> ungroup() |> 
   rename(
-    `Orgão` = `Orgão Vinculado (Cargos e Funçõe`,
-    Etnia = `Nome Cor Origem Etnica`, 
-    `Cargo-Função` = Agrupamento2
+    `Orgão` = `Orgão Superior (Cargos e Funções`,
+    `Cargo-Função` = decreto
   ) |> 
   tidyr::pivot_wider(names_from =Sexo,
                      values_from = total) |> 
@@ -32,13 +45,13 @@ tabela <- funcoes_mar_23 |> group_by(
   mutate(
     Total = sum(c_across(Fem:Mas), na.rm = TRUE
     )
-  ) |>
-  mutate(
-    Etnia = factor(Etnia, 
-                   levels = c(
-                     "BRANCA","PARDA", "PRETA", "AMARELA","INDIGENA", "NAO INFORMADO")
-    )
-  )
+  ) 
+  # mutate(
+  #   Etnia = factor(Etnia, 
+  #                  levels = c(
+  #                    "BRANCA","PARDA", "PRETA", "AMARELA","INDIGENA", "NAO INFORMADO")
+  #   )
+  # )
     
     
 
@@ -227,3 +240,11 @@ bscols(
   fig,
   widths = c(12, 12))
 
+
+
+# De Para - Funções -------------------------------------------------------
+
+
+DE_PARA_FUNCOES <- read_excel("src/DE-PARA_FUNCOES.xlsx")|> janitor::clean_names()
+
+funcoes_mar_23 |> left_join(DE_PARA_FUNCOES, by = c("Nível Função2" = "funcao")) 

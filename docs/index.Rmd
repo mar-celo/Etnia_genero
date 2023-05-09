@@ -40,7 +40,7 @@ sd_total <- SharedData$new(dados, group = "dados_subset")
 filtro_Orgao <- filter_select("Orgao", 
                               "Selecione um Órgão", 
                               sd_total, 
-                              ~`Orgão`,
+                              ~Orgão,
                               multiple = FALSE
                               )
 
@@ -171,10 +171,10 @@ bars_fem2 <- plot_ly(sd_Etnia)  |>
            y =  ~Fem,
            #color = ~`Cargo-Função`,#I("#89CFF0"),
            colors =  brewer.pal(n = 10, name = "PuBu"),
-           text = ~`Cargo-Função`,
+           #text = ~`Cargo-Função`,
            name = "Fem",
            opacity=1,
-           hovertemplate = paste('%{x} <br> Sexo Feminino: %{y}<extra></extra><br> %{text}')
+           hovertemplate = paste('%{x}<br>%{y}')
   ) |> layout(
          xaxis = list(title = "Feminino"),
          yaxis = list(title = "")) |> 
@@ -184,10 +184,10 @@ bars_fem2 <- plot_ly(sd_Etnia)  |>
            y =  ~Mas,
            #color = ~`Cargo-Função`,#I("#89CFF0"),
            colors =  brewer.pal(n = 10, name = "PuBu"),
-           text = ~`Cargo-Função`,
+           #text = ~`Cargo-Função`,
            name = "Mas",
            opacity=1,
-           hovertemplate = paste('%{x} <br> Sexo Masculino: %{y}<extra></extra><br> %{text}')
+           hovertemplate = paste('%{x}<br>%{y}')
   ) |> layout(
          xaxis = list(title = "Cor/Raça - Etnias"),
          yaxis = list(title = "")) |> 
@@ -247,136 +247,202 @@ dt2 <- sd_Etnia |>
 ```
 
 ```{r}
-dados_serie <- readRDS("../data/serie.rds") 
+# dados_serie <- readRDS("../data/serie.rds") 
+# 
+# sd_serie <- SharedData$new(dados_serie, group = "dados_serie")  
+# filtro_funcao3 <- filter_select("Funcao3", 
+#                                "Selecione um Cargo-Função", 
+#                                sd_serie, 
+#                                ~Agrupamento2,
+#                                multiple = FALSE)
+#  
+# ax <- list(
+#   title = "",
+#   zeroline = FALSE,
+#   showline = FALSE,
+#   showticklabels = FALSE
+# )
+# 
+# 
+# fig1 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+#   add_trace(x = ~Data, y = ~BRANCA, name = ~Agrupamento2)%>%
+#   layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,.8), title = ''))
+# 
+# 
+# fig2 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+#   add_trace(x = ~Data, y = ~PARDA, name = ~Agrupamento2)%>%
+#   layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.8),title = '', showticklabels = TRUE))
+# 
+# 
+# fig3 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+#   add_trace(x = ~Data, y = ~PRETA, name = ~Agrupamento2)%>%
+#   layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.3), title = 'Decreto'))
+# 
+# 
+# fig4 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+#   add_trace(x = ~Data, y = ~AMARELA, name = ~Agrupamento2)%>%
+#   layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.3),title = '', showticklabels = TRUE))
+# 
+# 
+# fig5 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+#   add_trace(x = ~Data, y = ~INDIGENA, name = ~Agrupamento2)%>%
+#   layout(legend=list(title=list(text='Cor/Raça-Etnia')),  yaxis = list(range = c(0.0,0.1),title = '', showticklabels = TRUE), xaxis = list(title = 'Data'))
+# 
+# 
+# fig6 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
+#   add_trace(x = ~Data, y = ~`NAO INFORMADO`, name = ~Agrupamento2)%>%
+#   layout( legend=list(title=list(text='Cor/Raça-Etnia')), yaxis = list(range = c(0.0,0.1) ,showticklabels = TRUE, title =''),  xaxis = list(title = 'Data'))
+# 
+# 
+# fig <- subplot(fig1, fig2, fig3, fig4, fig5, fig6,
+#                nrows = 3, titleY = TRUE, titleX = TRUE) %>% layout(
+#                  xaxis = list(zerolinecolor = '#ffff',
+#                               zerolinewidth = 2,
+#                               gridcolor = 'ffff'),
+#                  yaxis = list(zerolinecolor = '#ffff',
+#                               zerolinewidth = 2,
+#                               gridcolor = 'ffff'),
+#                  plot_bgcolor='#e5ecf6')
+# annotations = list(
+#   list(
+#     x = 0.225,
+#     y = 1.0,
+#     font = list(size = 10),
+#     text = "Branca",
+#     xref = "paper",
+#     yref = "paper",
+#     xanchor = "center",
+#     yanchor = "bottom",
+#     showarrow = FALSE
+#   ),
+#   list(
+#     x = 0.775,
+#     y = 1,
+#     font = list(size = 10),
+#     text = "Parda",
+#     xref = "paper",
+#     yref = "paper",
+#     xanchor = "center",
+#     yanchor = "bottom",
+#     showarrow = FALSE
+#   ),
+#   list(
+#     x = 0.225,
+#     y = 0.64,
+#     font = list(size = 10),
+#     text = "Preta",
+#     xref = "paper",
+#     yref = "paper",
+#     xanchor = "center",
+#     yanchor = "bottom",
+#     showarrow = FALSE
+#   ),
+#   list(
+#     x = 0.775,
+#     y = 0.64,
+#     font = list(size = 10),
+#     text = "Amarela",
+#     xref = "paper",
+#     yref = "paper",
+#     xanchor = "center",
+#     yanchor = "bottom",
+#     showarrow = FALSE
+#   ),
+#   list(
+#     x = 0.225,
+#     y = 0.315,
+#     font = list(size = 10),
+#     text = "Indígena",
+#     xref = "paper",
+#     yref = "paper",
+#     xanchor = "center",
+#     yanchor = "bottom",
+#     showarrow = FALSE
+#   ),
+#   list(
+#     x = 0.775,
+#     y = 0.315,
+#     font = list(size = 10),
+#     text = "Não Informado",
+#     xref = "paper",
+#     yref = "paper",
+#     xanchor = "center",
+#     yanchor = "bottom",
+#     showarrow = FALSE
+#   )
+# )
+# 
+# fig <- fig %>%layout(annotations = annotations, width = 1000)|> hide_legend()
+# options(warn = -1)
+# 
+# 
 
-sd_serie <- SharedData$new(dados_serie, group = "dados_serie")  
-filtro_funcao3 <- filter_select("Funcao3", 
-                               "Selecione um Cargo-Função", 
-                               sd_serie, 
-                               ~Agrupamento2,
-                               multiple = FALSE)
- 
-ax <- list(
-  title = "",
-  zeroline = FALSE,
-  showline = FALSE,
-  showticklabels = FALSE
+```
+  
+# Gráfico de pizza
+
+```{r}
+
+
+pier <- plot_ly()  
+pier <- pier |>  
+  add_pie(
+    data = sd_Etnia,
+    labels = ~Etnia,
+    values = ~Fem,
+    name = "Feminino",
+    domain = list(x = c(0, 0.4), y = c(0.4, 1)))  
+pier <- pier |> add_pie(
+  data = sd_Etnia,
+  labels = ~Etnia,
+  values = ~Mas,
+  name = "Masculino",
+  domain = list(x = c(0.6, 1), y = c(0.4, 1))
 )
 
-
-fig1 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
-  add_trace(x = ~Data, y = ~BRANCA, name = ~Agrupamento2)%>%
-  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,.8), title = ''))
-
-
-fig2 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
-  add_trace(x = ~Data, y = ~PARDA, name = ~Agrupamento2)%>%
-  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.8),title = '', showticklabels = TRUE))
-
-
-fig3 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
-  add_trace(x = ~Data, y = ~PRETA, name = ~Agrupamento2)%>%
-  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.3), title = 'Decreto'))
+pier <- pier |> add_pie(
+  data = sd_Etnia,
+  labels = ~Etnia,
+  values = ~Total,
+  name = "Total",
+  domain = list(x = c(0.25, 0.75), y = c(0, 0.6))
+)
+pier <- pier |>  layout(title = "% Pessoas Negras em Cargos Comissionados", showlegend = F,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
 
-fig4 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
-  add_trace(x = ~Data, y = ~AMARELA, name = ~Agrupamento2)%>%
-  layout(legend=list(title=list(text='Cor/Raça-Etnia')), xaxis = ax, yaxis = list(range = c(0.0,0.3),title = '', showticklabels = TRUE))
+# table
 
-
-fig5 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
-  add_trace(x = ~Data, y = ~INDIGENA, name = ~Agrupamento2)%>%
-  layout(legend=list(title=list(text='Cor/Raça-Etnia')),  yaxis = list(range = c(0.0,0.1),title = '', showticklabels = TRUE), xaxis = list(title = 'Data'))
-
-
-fig6 <- plot_ly(sd_serie, type = 'scatter', mode = 'lines', fill = 'tonexty')%>%
-  add_trace(x = ~Data, y = ~`NAO INFORMADO`, name = ~Agrupamento2)%>%
-  layout( legend=list(title=list(text='Cor/Raça-Etnia')), yaxis = list(range = c(0.0,0.1) ,showticklabels = TRUE, title =''),  xaxis = list(title = 'Data'))
-
-
-fig <- subplot(fig1, fig2, fig3, fig4, fig5, fig6,
-               nrows = 3, titleY = TRUE, titleX = TRUE) %>% layout(
-                 xaxis = list(zerolinecolor = '#ffff',
-                              zerolinewidth = 2,
-                              gridcolor = 'ffff'),
-                 yaxis = list(zerolinecolor = '#ffff',
-                              zerolinewidth = 2,
-                              gridcolor = 'ffff'),
-                 plot_bgcolor='#e5ecf6')
-annotations = list(
-  list(
-    x = 0.225,
-    y = 1.0,
-    font = list(size = 10),
-    text = "Branca",
-    xref = "paper",
-    yref = "paper",
-    xanchor = "center",
-    yanchor = "bottom",
-    showarrow = FALSE
-  ),
-  list(
-    x = 0.775,
-    y = 1,
-    font = list(size = 10),
-    text = "Parda",
-    xref = "paper",
-    yref = "paper",
-    xanchor = "center",
-    yanchor = "bottom",
-    showarrow = FALSE
-  ),
-  list(
-    x = 0.225,
-    y = 0.64,
-    font = list(size = 10),
-    text = "Preta",
-    xref = "paper",
-    yref = "paper",
-    xanchor = "center",
-    yanchor = "bottom",
-    showarrow = FALSE
-  ),
-  list(
-    x = 0.775,
-    y = 0.64,
-    font = list(size = 10),
-    text = "Amarela",
-    xref = "paper",
-    yref = "paper",
-    xanchor = "center",
-    yanchor = "bottom",
-    showarrow = FALSE
-  ),
-  list(
-    x = 0.225,
-    y = 0.315,
-    font = list(size = 10),
-    text = "Indígena",
-    xref = "paper",
-    yref = "paper",
-    xanchor = "center",
-    yanchor = "bottom",
-    showarrow = FALSE
-  ),
-  list(
-    x = 0.775,
-    y = 0.315,
-    font = list(size = 10),
-    text = "Não Informado",
-    xref = "paper",
-    yref = "paper",
-    xanchor = "center",
-    yanchor = "bottom",
-    showarrow = FALSE
+dt2 <- sd_Etnia |> 
+  DT::datatable(
+    filter = "top",  # allows filtering on each column
+    extensions = c(
+      "Buttons",  # add download buttons, etc
+      "Scroller"  # for scrolling down the rows rather than pagination
+    ),
+    rownames = FALSE,  # remove rownames
+    style = "bootstrap",
+    class = "compact",
+    width = "100%",
+    options = list(
+      dom = "Blrtip",  # specify content (search box, etc)
+      deferRender = TRUE,
+      scrollY = 300,
+      scroller = TRUE,
+      columnDefs = list(
+        list(
+          visible = FALSE,
+          targets = c("Fem", "Mas")
+        )
+      ),
+      buttons = list(
+        I("colvis"),  # turn columns on and off
+        "csv",  # download as .csv
+        "excel"  # download as .xlsx
+      )
+    )
   )
-)
-
-fig <- fig %>%layout(annotations = annotations, width = 1000)|> hide_legend()
-options(warn = -1)
-
-
-
 ```
 
 
@@ -398,13 +464,13 @@ bscols(
   widths = c(12, 12, 12))
 ```
 
-## Série histórica - 2018 a 2023
+
 
 ```{r}
-bscols(
-  filtro_funcao3,
-  fig,
-  widths = c(12, 12))
+# bscols(
+#   filtro_funcao3,
+#   fig,
+#   widths = c(12, 12))
   
 ``` 
 
@@ -423,14 +489,22 @@ bscols(
   widths = c(6, 6, 12, 12, 12))
 ```
 
+```{r}
+# Cargo funçao por sexo
+bscols(
+  pier, 
+  widths = 12)
+```
+
+
 ```{js echo=FALSE, message=FALSE, warning=FALSE}
 function filter_default() {
     document.getElementById("Orgao").getElementsByClassName("selectized") 
-[0].selectize.setValue("Advocacia-Geral Da Uniao", false);
+[0].selectize.setValue("Controladoria-Geral Da Uniao", false);
     document.getElementById("Funcao").getElementsByClassName("selectized") 
-[0].selectize.setValue("FCPE &amp; FEX", false);
+[0].selectize.setValue("Nível 1 a 12", false);
     document.getElementById("Funcao2").getElementsByClassName("selectized") 
-[0].selectize.setValue("FCPE &amp; FEX", false);
+[0].selectize.setValue("Nível 1 a 12", false);
     document.getElementById("Funcao3").getElementsByClassName("selectized") 
 [0].selectize.setValue("FCPE &amp; FEX", false);
  }
