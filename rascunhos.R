@@ -217,3 +217,47 @@ fig <- fig %>%layout(annotations = annotations, width = 900)
 options(warn = -1)
 fig
 
+
+# Pie Plotly --------------------------------------------------------------
+
+
+library(plotly)
+library(dplyr)
+
+fig <- plot_ly()
+fig <- fig %>% add_pie(data = count(diamonds, cut), labels = ~cut, values = ~n,
+                       name = "Cut", domain = list(x = c(0, 0.4), y = c(0.4, 1)))
+fig <- fig %>% add_pie(data = count(diamonds, color), labels = ~color, values = ~n,
+                       name = "Color", domain = list(x = c(0.6, 1), y = c(0.4, 1)))
+fig <- fig %>% add_pie(data = count(diamonds, clarity), labels = ~clarity, values = ~n,
+                       name = "Clarity", domain = list(x = c(0.25, 0.75), y = c(0, 0.6)))
+fig <- fig %>% layout(title = "Pie Charts with Subplots", showlegend = F,
+                      xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                      yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+fig
+
+
+USPersonalExpenditure <- data.frame("Categorie" = rownames(USPersonalExpenditure), USPersonalExpenditure)
+data <- USPersonalExpenditure[, c('Categorie', 'X1960')]
+
+df <-  tabela |> group_by(Etnia) |> 
+  dplyr::summarise(
+  total = sum(Total, na.rm = TRUE)
+) |> ungroup()
+
+
+fig <- plot_ly()
+fig <- fig %>% add_pie(data = df, labels = ~Etnia, values = ~total,
+                       name = "Feminino", 
+                       domain = list(x = c(0, 0.4), y = c(0.4, 1)))
+
+fig <- fig %>% add_pie(data = df, labels = ~Etnia, values = ~total,
+          name = "Masculino", domain = list(x = c(0.6, 1), y = c(0.4, 1)))
+fig <- fig %>% add_pie(data = df, labels = ~Etnia, values = ~total,
+          name = "Total", domain = list(x = c(0.25, 0.75), y = c(0, 0.6)))
+fig <- fig %>% layout(title = "Pie Charts with Subplots", showlegend = F,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+fig
