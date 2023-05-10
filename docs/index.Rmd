@@ -546,7 +546,7 @@ fig2 <- subplot(s1, pier_total, nrows = 2, margin = 0.07) %>%
 
 Nível 1 a 12
 
-```{r pizza_nivel_1a12}
+```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
 bscols(fig,  widths = 12)
 ```
 
