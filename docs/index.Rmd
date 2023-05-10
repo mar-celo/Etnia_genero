@@ -547,13 +547,13 @@ fig2 <- subplot(s1, pier_total, nrows = 2, margin = 0.07) %>%
 Nível 1 a 12
 
 ```{r pizza_nivel_1a12}
-fig
+bscols(fig,  widths = 12)
 ```
 
 Nível 13 a 17
 
 ```{r}
-fig2
+bscols(fig2,  widths = 12)
 ```
 
 # grafico de barras
