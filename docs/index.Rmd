@@ -32,11 +32,11 @@ library(RColorBrewer)
 
 dados <- readRDS("../data/Tab.rds") 
 
-sd_total <- SharedData$new(dados, group = "dados_subset")
+sd_total <- SharedData$new(dados)
 
 ```
 
-```{r}
+```{r filtro_orgao}
 filtro_Orgao <- filter_select("Orgao", 
                               "Selecione um Órgão", 
                               sd_total, 
@@ -135,7 +135,7 @@ dt <- sd_total |>
 
 
 
-```{r}
+```{r dados_gerais}
 
 dados_geral <- dados |> 
   dplyr::group_by(
@@ -156,7 +156,7 @@ sd_Etnia <- SharedData$new(dados_geral)
 ```
 
 
-```{r}
+```{r grafico_barra_empilhado}
 funcao2 <- filter_select("Funcao2", 
                                  "Selecione um Cargo-Função", 
                                  sd_Etnia, 
@@ -165,7 +165,7 @@ funcao2 <- filter_select("Funcao2",
                                  #columns = 1
                                  )
 
-bars_fem2 <- plot_ly(sd_Etnia)  |> 
+bars_empilhado <- plot_ly(sd_Etnia)  |> 
   add_bars(width=0.8,
            x =  ~Etnia,
            y =  ~Fem,
@@ -383,11 +383,9 @@ dt2 <- sd_Etnia |>
 
 ```{r pizza}
 
-
-  
 pier_fem <- plot_ly() |>  
   add_pie(
-    data = sd_Etnia,
+    data = dados_geral[dados_geral$`Cargo-Função`=="Nível 1 a 12",],
     labels = ~Etnia,
     values = ~Fem,
     name = "Feminino",
@@ -396,22 +394,23 @@ pier_fem <- plot_ly() |>
    
 pier_mas <- plot_ly() |> 
   add_pie(
-    data = sd_Etnia,
+    data = dados_geral[dados_geral$`Cargo-Função`=="Nível 1 a 12",],
     labels = ~Etnia,
     values = ~Mas,
     name = "Masculino",
     domain = list(x = c(0.6, 1), y = c(0.4, 1))
   ) 
 
-pier_total <-  plot_ly() |> add_pie(
-  data = sd_Etnia,
+pier_total <-  plot_ly() |> 
+  add_pie(
+  data = dados_geral[dados_geral$`Cargo-Função`=="Nível 1 a 12",],
   labels = ~Etnia,
   values = ~Total,
   name = "Total",
   domain = list(x = c(0.25, 0.75), y = c(0, 0.6))
 ) |> 
   layout(annotations = list( 
-    list(x = 0.52 , y = 1.5, text = "Total", showarrow = F, xref='paper', yref='paper')
+    list(x = 0.52 , y = 1.6, text = "Total", showarrow = F, xref='paper', yref='paper')
     ) 
   )
 
@@ -427,7 +426,8 @@ s1 <- subplot(pier_fem, pier_mas)|>
 #          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
 fig <- subplot(s1, pier_total, nrows = 2, margin = 0.07) %>%  
-  layout(title = "% Pessoas Negras em Cargos Comissionados", 
+  layout(title = "% Pessoas Negras em Cargos Comissionados \n de nível 1 a 12",
+         subtitle = "existe",
          plot_bgcolor='#e5ecf6', 
          xaxis = list( 
            zerolinecolor = '#ffff', 
@@ -437,7 +437,7 @@ fig <- subplot(s1, pier_total, nrows = 2, margin = 0.07) %>%
            zerolinecolor = '#ffff', 
            zerolinewidth = 2, 
            gridcolor = 'ffff'),
-         showlegend=FALSE,showlegend2=FALSE, 
+         showlegend=TRUE,showlegend2=TRUE, 
          margin = 0.01) 
 
 
@@ -476,6 +476,66 @@ dt2 <- sd_Etnia |>
   )
 ```
 
+```{r pizza_nivel13a17}
+
+pier_fem <- plot_ly() |>  
+  add_pie(
+    data = dados_geral[dados_geral$`Cargo-Função`=="Nível 13 a 17",],
+    labels = ~Etnia,
+    values = ~Fem,
+    name = "Feminino",
+    domain = list(x = c(0, 0.4), y = c(0.4, 1))
+  )   
+   
+pier_mas <- plot_ly() |> 
+  add_pie(
+    data = dados_geral[dados_geral$`Cargo-Função`=="Nível 13 a 17",],
+    labels = ~Etnia,
+    values = ~Mas,
+    name = "Masculino",
+    domain = list(x = c(0.6, 1), y = c(0.4, 1))
+  ) 
+
+pier_total <-  plot_ly() |> 
+  add_pie(
+  data = dados_geral[dados_geral$`Cargo-Função`=="Nível 13 a 17",],
+  labels = ~Etnia,
+  values = ~Total,
+  name = "Total",
+  domain = list(x = c(0.25, 0.75), y = c(0, 0.6))
+) |> 
+  layout(annotations = list( 
+    list(x = 0.52 , y = 1.6, text = "Total", showarrow = F, xref='paper', yref='paper')
+    ) 
+  )
+
+
+s1 <- subplot(pier_fem, pier_mas)|>  
+  layout(annotations = list( 
+    list(x = 0.15 , y = 1.2, text = "Feminino", showarrow = F, xref='paper', yref='paper'), 
+    list(x = 0.85 , y = 1.2, text = "Masculino", showarrow = F, xref='paper', yref='paper')) 
+  ) 
+
+# pier <- pier |>  layout(title = "% Pessoas Negras em Cargos Comissionados", showlegend = F,
+#          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+#          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+fig2 <- subplot(s1, pier_total, nrows = 2, margin = 0.07) %>%  
+  layout(title = "% Pessoas Negras em Cargos Comissionados \n de nível 13 a 17",
+         subtitle = "existe",
+         plot_bgcolor='#e5ecf6', 
+         xaxis = list( 
+           zerolinecolor = '#ffff', 
+           zerolinewidth = 2, 
+           gridcolor = 'ffff'), 
+         yaxis = list( 
+           zerolinecolor = '#ffff', 
+           zerolinewidth = 2, 
+           gridcolor = 'ffff'),
+         showlegend=TRUE,showlegend2=TRUE, 
+         margin = 0.01) 
+
+```
 
 ## Dados gerais
 
@@ -484,11 +544,25 @@ dt2 <- sd_Etnia |>
 
 ### Março de 2023
 
+Nível 1 a 12
+
+```{r pizza_nivel_1a12}
+fig
+```
+
+Nível 13 a 17
+
+```{r}
+fig2
+```
+
+# grafico de barras
+
 ```{r}
 # Cargo funçao por sexo
 bscols(
   funcao2,
-  bars_fem2,
+  bars_empilhado,
   #bars_mas2,
   dt2, 
   widths = c(12, 12, 12))
@@ -519,25 +593,18 @@ bscols(
   widths = c(6, 6, 12, 12, 12))
 ```
 
-```{r}
-# Cargo funçao por sexo
-bscols(
-  funcao2,
-  fig, 
-  widths = c(12, 12))
-```
 
 
 ```{js echo=FALSE, message=FALSE, warning=FALSE}
-<!-- function filter_default() { -->
-<!--     document.getElementById("Orgao").getElementsByClassName("selectized")  -->
-<!-- [0].selectize.setValue("Controladoria-Geral Da Uniao", false); -->
-<!--     document.getElementById("Funcao").getElementsByClassName("selectized")  -->
+function filter_default() {
+    document.getElementById("Orgao").getElementsByClassName("selectized")
+[0].selectize.setValue("Controladoria-Geral Da Uniao", false);
+    document.getElementById("Funcao").getElementsByClassName("selectized")
+[0].selectize.setValue("Nível 1 a 12", false);
+<!--     document.getElementById("Funcao2").getElementsByClassName("selectized") -->
 <!-- [0].selectize.setValue("Nível 1 a 12", false); -->
-<!--     document.getElementById("Funcao2").getElementsByClassName("selectized")  -->
-<!-- [0].selectize.setValue("Nível 1 a 12", false); -->
-<!--     document.getElementById("Funcao3").getElementsByClassName("selectized")  -->
+<!--     document.getElementById("Funcao3").getElementsByClassName("selectized") -->
 <!-- [0].selectize.setValue("FCPE &amp; FEX", false); -->
-<!--  } -->
-<!-- window.onload = filter_default; -->
+ }
+window.onload = filter_default;
 ```
