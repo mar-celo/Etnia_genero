@@ -383,51 +383,44 @@ dt2 <- sd_Etnia |>
 
 ```{r pizza}
 
-pier_fem <- plot_ly() |>  
+data_funcao <- dados_geral |> select(Etnia, `Cargo-Função`, Total) |> 
+  tidyr::pivot_wider(names_from = `Cargo-Função`, values_from = Total)
+
+pier_Nivel1a12 <- plot_ly() |>  
   add_pie(
-    data = dados_geral[dados_geral$`Cargo-Função`=="Nível 1 a 12",],
+    data = data_funcao,
     labels = ~Etnia,
-    values = ~Fem,
-    name = "Feminino",
-    domain = list(x = c(0, 0.4), y = c(0.4, 1))
+    values = ~`nível 1 a 12`,
+    name = "Nível 1 a 12",
+    domain = list(x = c(0, 0.4), y = c(0, 1))
+  )   
+
+pier_Nivel13a17 <- plot_ly() |>  
+  add_pie(
+    data = data_funcao,
+    labels = ~Etnia,
+    values = ~`nível 13 a 17`,
+    name = "Nível 13 a 17",
+    domain = list(x = c(0.6, 1), y = c(0, 1))
   )   
    
-pier_mas <- plot_ly() |> 
-  add_pie(
-    data = dados_geral[dados_geral$`Cargo-Função`=="Nível 1 a 12",],
-    labels = ~Etnia,
-    values = ~Mas,
-    name = "Masculino",
-    domain = list(x = c(0.6, 1), y = c(0.4, 1))
-  ) 
 
-pier_total <-  plot_ly() |> 
-  add_pie(
-  data = dados_geral[dados_geral$`Cargo-Função`=="Nível 1 a 12",],
-  labels = ~Etnia,
-  values = ~Total,
-  name = "Total",
-  domain = list(x = c(0.25, 0.75), y = c(0, 0.6))
-) |> 
+
+
+
+
+s1 <- subplot(pier_Nivel1a12, pier_Nivel13a17)|>  
   layout(annotations = list( 
-    list(x = 0.52 , y = 1.6, text = "Total", showarrow = F, xref='paper', yref='paper')
-    ) 
-  )
-
-
-s1 <- subplot(pier_fem, pier_mas)|>  
-  layout(annotations = list( 
-    list(x = 0.15 , y = 1.2, text = "Feminino", showarrow = F, xref='paper', yref='paper'), 
-    list(x = 0.85 , y = 1.2, text = "Masculino", showarrow = F, xref='paper', yref='paper')) 
+    list(x = 0.10 , y = 1.1, text = "Nível 1 a 12", showarrow = F, xref='paper', yref='paper'), 
+    list(x = 0.85 , y = 1.1, text = "Nível 13 a 17", showarrow = F, xref='paper', yref='paper')) 
   ) 
 
 # pier <- pier |>  layout(title = "% Pessoas Negras em Cargos Comissionados", showlegend = F,
 #          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
 #          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
-fig <- subplot(s1, pier_total, nrows = 2, margin = 0.07) %>%  
-  layout(title = "% Pessoas Negras em Cargos Comissionados \n de nível 1 a 12",
-         subtitle = "existe",
+fig <- s1 |>  
+  layout(title = "% Pessoas Negras em Cargos Comissionados",
          plot_bgcolor='#e5ecf6', 
          xaxis = list( 
            zerolinecolor = '#ffff', 
@@ -476,66 +469,6 @@ dt2 <- sd_Etnia |>
   )
 ```
 
-```{r pizza_nivel13a17}
-
-pier_fem <- plot_ly() |>  
-  add_pie(
-    data = dados_geral[dados_geral$`Cargo-Função`=="Nível 13 a 17",],
-    labels = ~Etnia,
-    values = ~Fem,
-    name = "Feminino",
-    domain = list(x = c(0, 0.4), y = c(0.4, 1))
-  )   
-   
-pier_mas <- plot_ly() |> 
-  add_pie(
-    data = dados_geral[dados_geral$`Cargo-Função`=="Nível 13 a 17",],
-    labels = ~Etnia,
-    values = ~Mas,
-    name = "Masculino",
-    domain = list(x = c(0.6, 1), y = c(0.4, 1))
-  ) 
-
-pier_total <-  plot_ly() |> 
-  add_pie(
-  data = dados_geral[dados_geral$`Cargo-Função`=="Nível 13 a 17",],
-  labels = ~Etnia,
-  values = ~Total,
-  name = "Total",
-  domain = list(x = c(0.25, 0.75), y = c(0, 0.6))
-) |> 
-  layout(annotations = list( 
-    list(x = 0.52 , y = 1.6, text = "Total", showarrow = F, xref='paper', yref='paper')
-    ) 
-  )
-
-
-s1 <- subplot(pier_fem, pier_mas)|>  
-  layout(annotations = list( 
-    list(x = 0.15 , y = 1.2, text = "Feminino", showarrow = F, xref='paper', yref='paper'), 
-    list(x = 0.85 , y = 1.2, text = "Masculino", showarrow = F, xref='paper', yref='paper')) 
-  ) 
-
-# pier <- pier |>  layout(title = "% Pessoas Negras em Cargos Comissionados", showlegend = F,
-#          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-#          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-
-fig2 <- subplot(s1, pier_total, nrows = 2, margin = 0.07) %>%  
-  layout(title = "% Pessoas Negras em Cargos Comissionados \n de nível 13 a 17",
-         subtitle = "existe",
-         plot_bgcolor='#e5ecf6', 
-         xaxis = list( 
-           zerolinecolor = '#ffff', 
-           zerolinewidth = 2, 
-           gridcolor = 'ffff'), 
-         yaxis = list( 
-           zerolinecolor = '#ffff', 
-           zerolinewidth = 2, 
-           gridcolor = 'ffff'),
-         showlegend=TRUE,showlegend2=TRUE, 
-         margin = 0.01) 
-
-```
 
 ## Dados gerais
 
@@ -550,22 +483,18 @@ Nível 1 a 12
 bscols(fig,  widths = 12)
 ```
 
-Nível 13 a 17
+
+
+
 
 ```{r}
-bscols(fig2,  widths = 12)
-```
-
-# grafico de barras
-
-```{r}
-# Cargo funçao por sexo
-bscols(
-  funcao2,
-  bars_empilhado,
-  #bars_mas2,
-  dt2, 
-  widths = c(12, 12, 12))
+# # Cargo funçao por sexo
+# bscols(
+#   funcao2,
+#   bars_empilhado,
+#   #bars_mas2,
+#   dt2, 
+#   widths = c(12, 12, 12))
 ```
 
 
