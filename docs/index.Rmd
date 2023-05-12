@@ -529,7 +529,7 @@ function filter_default() {
     document.getElementById("Orgao").getElementsByClassName("selectized")
 [0].selectize.setValue("Controladoria-Geral Da Uniao", false);
     document.getElementById("Funcao").getElementsByClassName("selectized")
-[0].selectize.setValue("Nível 1 a 12", false);
+[0].selectize.setValue("nível 1 a 12", false);
 <!--     document.getElementById("Funcao2").getElementsByClassName("selectized") -->
 <!-- [0].selectize.setValue("Nível 1 a 12", false); -->
 <!--     document.getElementById("Funcao3").getElementsByClassName("selectized") -->
