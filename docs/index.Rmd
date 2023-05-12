@@ -519,7 +519,7 @@ bscols(
   bars_fem,
   bars_mas,
   dt, 
-  widths = c(6, 6, 12, 12, 12))
+  widths = c(6, 6, 6, 6, 12))
 ```
 
 
