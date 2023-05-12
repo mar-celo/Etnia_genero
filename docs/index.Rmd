@@ -383,25 +383,37 @@ dt2 <- sd_Etnia |>
 
 ```{r pizza}
 
-data_funcao <- dados_geral |> select(Etnia, `Cargo-Função`, Total) |> 
-  tidyr::pivot_wider(names_from = `Cargo-Função`, values_from = Total)
+
+data_funcao <- dados |> select(`Natureza Jurídica`,
+                               `Orgão Superior`,
+                               Orgão, Etnia, `Cargo-Função`, Total) |> 
+  tidyr::pivot_wider(names_from = `Cargo-Função`, values_from = Total) |> 
+  filter(Orgão != "Agencia Brasileira De Inteligencia")
+
+sd_pizza <- SharedData$new(data_funcao, group = "funcao")
+filtro_Orgao <- filter_select("Orgao", 
+                              "Selecione um Órgão", 
+                              sd_pizza, 
+                              ~Orgão,
+                              multiple = FALSE
+                              )
 
 pier_Nivel1a12 <- plot_ly() |>  
   add_pie(
-    data = data_funcao,
+    data = sd_pizza,
     labels = ~Etnia,
     values = ~`nível 1 a 12`,
-    name = "Nível 1 a 12",
-    domain = list(x = c(0, 0.4), y = c(0, 1))
+    name = "Nível 1 a 12"
+    #domain = list(x = c(0, 0.4), y = c(0, 1))
   )   
 
 pier_Nivel13a17 <- plot_ly() |>  
   add_pie(
-    data = data_funcao,
+    data = sd_pizza,
     labels = ~Etnia,
     values = ~`nível 13 a 17`,
-    name = "Nível 13 a 17",
-    domain = list(x = c(0.6, 1), y = c(0, 1))
+    name = "Nível 13 a 17"
+    #domain = list(x = c(0.6, 1), y = c(0, 1))
   )   
    
 
@@ -419,8 +431,22 @@ s1 <- subplot(pier_Nivel1a12, pier_Nivel13a17)|>
 #          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
 #          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
-fig <- s1 |>  
-  layout(title = "% Pessoas Negras em Cargos Comissionados",
+figpier_Nivel1a12 <- pier_Nivel1a12 |>  
+  layout(title = "% Pessoas Negras em Cargos Comissionados\n Nivel 1 a 12",
+         plot_bgcolor='#e5ecf6', 
+         xaxis = list( 
+           zerolinecolor = '#ffff', 
+           zerolinewidth = 2, 
+           gridcolor = 'ffff'), 
+         yaxis = list( 
+           zerolinecolor = '#ffff', 
+           zerolinewidth = 2, 
+           gridcolor = 'ffff'),
+         showlegend=TRUE,showlegend2=TRUE, 
+         margin = 0.01) 
+
+figpier_Nivel13a17 <- pier_Nivel13a17 |>  
+  layout(title = "% Pessoas Negras em Cargos Comissionados\n Nivel 13 a 17",
          plot_bgcolor='#e5ecf6', 
          xaxis = list( 
            zerolinecolor = '#ffff', 
@@ -434,11 +460,9 @@ fig <- s1 |>
          margin = 0.01) 
 
 
-
-
 # table
 
-dt2 <- sd_Etnia |> 
+dt2 <- sd_pizza |> 
   DT::datatable(
     filter = "top",  # allows filtering on each column
     extensions = c(
@@ -454,12 +478,12 @@ dt2 <- sd_Etnia |>
       deferRender = TRUE,
       scrollY = 300,
       scroller = TRUE,
-      columnDefs = list(
-        list(
-          visible = FALSE,
-          targets = c("Fem", "Mas")
-        )
-      ),
+      # columnDefs = list(
+      #   list(
+      #     visible = FALSE,
+      #     targets = c("Fem", "Mas")
+      #   )
+      # ),
       buttons = list(
         I("colvis"),  # turn columns on and off
         "csv",  # download as .csv
@@ -477,10 +501,9 @@ dt2 <- sd_Etnia |>
 
 ### Março de 2023
 
-Nível 1 a 12
-
 ```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
-bscols(fig,  widths = 12)
+bscols(filtro_Orgao, figpier_Nivel1a12, figpier_Nivel13a17,
+       dt2,   widths = c(12, 6, 6, 12), device = "sm")
 ```
 
 
@@ -507,29 +530,27 @@ bscols(fig,  widths = 12)
   
 ``` 
 
-### Filtre seu Órgão 
 
-##### Março de 2023
 
 ```{r}
 # create final output ----
-bscols(
-  filtro_Orgao,
-  filtro_funcao,
-  bars_fem,
-  bars_mas,
-  dt, 
-  widths = c(6, 6, 6, 6, 12))
+# bscols(
+#   filtro_Orgao,
+#   filtro_funcao,
+#   bars_fem,
+#   bars_mas,
+#   dt, 
+#   widths = c(6, 6, 12, 12, 12))
 ```
 
 
 
 ```{js echo=FALSE, message=FALSE, warning=FALSE}
-function filter_default() {
-    document.getElementById("Orgao").getElementsByClassName("selectized")
-[0].selectize.setValue("Controladoria-Geral Da Uniao", false);
-    document.getElementById("Funcao").getElementsByClassName("selectized")
-[0].selectize.setValue("nível 1 a 12", false);
+<!-- function filter_default() { -->
+<!--     document.getElementById("Orgao").getElementsByClassName("selectized") -->
+<!-- [0].selectize.setValue("", false); -->
+<!--     document.getElementById("Funcao").getElementsByClassName("selectized") -->
+<!-- [0].selectize.setValue("nível 1 a 12", false); -->
 <!--     document.getElementById("Funcao2").getElementsByClassName("selectized") -->
 <!-- [0].selectize.setValue("Nível 1 a 12", false); -->
 <!--     document.getElementById("Funcao3").getElementsByClassName("selectized") -->
