@@ -30,14 +30,16 @@ funcoes_mar_23 <- funcoes_mar_23 |> left_join(DE_PARA_FUNCOES, by = c("Nível Fu
 
 tabela <- funcoes_mar_23 |> group_by(
   `Natureza Jurídica`,
+  `Orgão Vinculado (Cargos e Funçõe`,
   `Orgão Superior (Cargos e Funções`,
-  Etnia ,Sexo, decreto) |> 
+  Etnia ,Sexo, decreto_atual) |> 
   dplyr::summarise(
     total = sum(`Quantidade de Vinculos (Cargos e`)
   ) |> ungroup() |> 
   rename(
-    `Orgão` = `Orgão Superior (Cargos e Funções`,
-    `Cargo-Função` = decreto
+    `Orgão Superior` = `Orgão Superior (Cargos e Funções`,
+    `Orgão` = `Orgão Vinculado (Cargos e Funçõe`,
+    `Cargo-Função` = decreto_atual
   ) |> 
   tidyr::pivot_wider(names_from =Sexo,
                      values_from = total) |> 
@@ -45,13 +47,8 @@ tabela <- funcoes_mar_23 |> group_by(
   mutate(
     Total = sum(c_across(Fem:Mas), na.rm = TRUE
     )
-  ) 
-  # mutate(
-  #   Etnia = factor(Etnia, 
-  #                  levels = c(
-  #                    "BRANCA","PARDA", "PRETA", "AMARELA","INDIGENA", "NAO INFORMADO")
-  #   )
-  # )
+  ) |> 
+  filter(`Cargo-Função` %in% c("nível 1 a 12", "nível 13 a 17"))
     
     
 

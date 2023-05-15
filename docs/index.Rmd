@@ -8,7 +8,7 @@ output:
 
 .main-container {
 
-  max-width: 60%;
+  max-width: 80%;
 
   margin-left: auto;
 
@@ -37,7 +37,7 @@ library(RColorBrewer)
 
 #Por órgão 
 
-dados <- readRDS("../data/Tab.rds") 
+dados <- readRDS("../data/Tab.rds") |> filter(Órgão != "Agencia Brasileira De Inteligencia") 
 
 sd_total <- SharedData$new(dados, group = "funcao")
 
@@ -47,7 +47,8 @@ sd_total <- SharedData$new(dados, group = "funcao")
 filtro_Orgao <- filter_select("Orgao", 
                               "Selecione um Órgão", 
                               sd_total, 
-                              ~Orgão,
+                              ~Órgão,
+                              allLevels = TRUE,
                               multiple = FALSE
                               )
 
@@ -387,16 +388,16 @@ dt2 <- sd_Etnia |>
 
 
 data_funcao <- dados |> select(`Natureza Jurídica`,
-                               `Orgão Superior`,
-                               Orgão, Etnia, `Cargo-Função`, Fem, Mas, Total) |> 
+                               `Órgão Superior`,
+                               Órgão, Etnia, `Cargo-Função`, Fem, Mas, Total) |> 
   tidyr::pivot_wider(names_from = `Cargo-Função`, values_from = Total) |> 
-  filter(Orgão != "Agencia Brasileira De Inteligencia")
+  filter(Órgão != "Agencia Brasileira De Inteligencia")
 
 sd_pizza <- SharedData$new(data_funcao, group = "funcao")
 filtro_Orgao <- filter_select("Orgao", 
                               "Selecione um Órgão", 
                               sd_pizza, 
-                              ~Orgão,
+                              ~Órgão,
                               multiple = FALSE
                               )
 
@@ -480,12 +481,12 @@ dt2 <- sd_total |>
       deferRender = TRUE,
       scrollY = 300,
       scroller = TRUE,
-      # columnDefs = list(
-      #   list(
-      #     visible = FALSE,
-      #     targets = c("Fem", "Mas")
-      #   )
-      # ),
+      columnDefs = list(
+        list(
+          visible = FALSE,
+          targets = c("Natureza Jurídica", "Órgão Superior")
+        )
+      ),
       buttons = list(
         I("colvis"),  # turn columns on and off
         "csv",  # download as .csv
@@ -500,10 +501,11 @@ dt2 <- sd_total |>
 -   *`Posição Março de 2023`*
 
 ```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
-bscols(filtro_Orgao, 
+bscols(filtro_Orgao, widths = 6)
+bscols( 
        figpier_Nivel1a12,
        figpier_Nivel13a17,
-       dt2,  widths = c(12, 6, 6), 
+       dt2,  widths = c( 6, 6,12), 
        device = "sm")
 ```
 
@@ -537,9 +539,9 @@ bscols(filtro_Orgao,
 ```
 
 ```{js echo=FALSE, message=FALSE, warning=FALSE}
-<!-- function filter_default() { -->
-<!--     document.getElementById("Orgao").getElementsByClassName("selectized") -->
-<!-- [0].selectize.setValue("", false); -->
+function filter_default() {
+    document.getElementById("Orgao").getElementsByClassName("selectized")
+[0].selectize.setValue("(ALL)", false);
 <!--     document.getElementById("Funcao").getElementsByClassName("selectized") -->
 <!-- [0].selectize.setValue("nível 1 a 12", false); -->
 <!--     document.getElementById("Funcao2").getElementsByClassName("selectized") -->

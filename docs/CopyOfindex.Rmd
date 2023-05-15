@@ -598,7 +598,7 @@ bscols(
 ```{js echo=FALSE, message=FALSE, warning=FALSE}
 function filter_default() {
     document.getElementById("Orgao").getElementsByClassName("selectized")
-[0].selectize.setValue("Controladoria-Geral Da Uniao", false);
+[0].selectize.setValue("(ALL)", false);
     document.getElementById("Funcao").getElementsByClassName("selectized")
 [0].selectize.setValue("Nível 1 a 12", false);
 <!--     document.getElementById("Funcao2").getElementsByClassName("selectized") -->
