@@ -37,8 +37,8 @@ tabela <- funcoes_mar_23 |> group_by(
     total = sum(`Quantidade de Vinculos (Cargos e`)
   ) |> ungroup() |> 
   rename(
-    `Orgão Superior` = `Orgão Superior (Cargos e Funções`,
-    `Orgão` = `Orgão Vinculado (Cargos e Funçõe`,
+    `Órgão Superior` = `Orgão Superior (Cargos e Funções`,
+    `Órgão` = `Orgão Vinculado (Cargos e Funçõe`,
     `Cargo-Função` = decreto_atual
   ) |> 
   tidyr::pivot_wider(names_from =Sexo,

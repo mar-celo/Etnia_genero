@@ -4,11 +4,12 @@ output:
     theme: bootstrap
 ---
 
+```{=html}
 <style type="text/css">
 
 .main-container {
 
-  max-width: 80%;
+  max-width: 90%;
 
   margin-left: auto;
 
@@ -17,7 +18,7 @@ output:
 }
 
 </style>
-
+```
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FALSE)
 ```
@@ -496,7 +497,7 @@ dt2 <- sd_total |>
   )
 ```
 
-## **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados** 
+### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados** {style="color "}
 
 -   *`Posição Março de 2023`*
 
