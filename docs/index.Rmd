@@ -20,6 +20,7 @@ output:
 strong {
     font-weight: 700;
     color: #0c326f;
+    
 }
 
 label {
@@ -515,7 +516,7 @@ dt2 <- sd_total |>
   )
 ```
 
-### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados** 
+### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
 
 -   *`Posição Março de 2023`*
 
