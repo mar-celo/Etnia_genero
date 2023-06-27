@@ -18,7 +18,7 @@ funcoes_mar_23 <- read_excel("src/funcoes_mar_23.xlsx",
 funcoes_mar_23 <- funcoes_mar_23 |> mutate(
   Etnia = case_when( 
      `Cor Origem Etnica` %in% c(4, 6)  ~ "Negras",
-    .default = "Demais Etnias"
+    .default = "Demais Raça/Cor"
   )
 ) 
 
