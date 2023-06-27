@@ -412,7 +412,7 @@ html_object_13a17<-table|>
 
 ### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
 
--   *`Posição Maio de 2023`*
+-   *`Posição Maio de 2023 - EM VALIDAÇÃO`*
 
 ```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
 bscols(filtro_Orgao, widths = 6)
