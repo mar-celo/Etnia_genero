@@ -26,6 +26,7 @@ funcoes <- funcoes |> mutate(
 
 
 # tratamento da base
+#Totalizar por Orgão Superior
 
 tabela_org_sup <- funcoes |> group_by(
   month,
@@ -34,7 +35,7 @@ tabela_org_sup <- funcoes |> group_by(
   #orgao_vinculado_cargos_e_funcoes,
   etnia , decreto_nivel) |> 
   dplyr::summarise(
-    total = sum(quantidade_de_vinculos_cargos_e_funcoes)
+    total = sum(quantidade_de_vinculos_cargos_e_funcoes, na.rm = TRUE)
   ) |> ungroup() |> 
   rename(
     `Órgão Superior` = orgao_superior_cargos_e_funcoes,
@@ -66,10 +67,10 @@ tabela_org_sup_perc <- tabela_org_sup |>
     ) |>  
   filter(etnia == "Negras")|> 
   ungroup() |> 
-  mutate(rank=row_number())|>
+  mutate(rank=paste(row_number(), "º"))|>
   select(rank, `Órgão Superior`, `% Nível 1 a 12`, Total_serv_1a12 , `% Nível 13 a 17`, Total_serv_13a17)
 
-# tendendia percentual
+# tendencia percentual
  
 
 tend_mensal <- tabela_org_sup |>
@@ -105,7 +106,7 @@ tabela_org <- funcoes |> group_by(
   orgao_vinculado_cargos_e_funcoes,
   etnia , decreto_nivel) |> 
   dplyr::summarise(
-    total = sum(quantidade_de_vinculos_cargos_e_funcoes)
+    total = sum(quantidade_de_vinculos_cargos_e_funcoes, na.rm = TRUE)
   ) |> ungroup() |> 
   rename(
     `Órgão Superior` = orgao_superior_cargos_e_funcoes,
@@ -136,8 +137,8 @@ tabela_org_perc <- tabela_org |>
   ) |>  
   filter(etnia == "Negras")|> 
   ungroup() |> 
-  mutate(rank=row_number())|>
-  select(rank, `Órgão Superior`, Órgão, `% Nível 1 a 12`, Total_serv_1a12 , `% Nível 13 a 17`, Total_serv_13a17)
+  mutate(rank=paste(row_number(), "º"))|>
+  select(rank, `Órgão Superior`, Órgão, `Nível 1 a 12`, `% Nível 1 a 12`, Total_serv_1a12 , `% Nível 13 a 17`, Total_serv_13a17)
 
 tend_mensal_org <- tabela_org |>
   group_by(month, mes_cargos,`Órgão Superior` , Órgão) |> 
@@ -155,7 +156,7 @@ tend_mensal_org <- tabela_org |>
 
 subdata1a12 <-  tabela_org_perc |> 
   left_join(tend_mensal_org, by = join_by(`Órgão Superior`, Órgão)) |> 
-  select(rank, `Órgão Superior`, Órgão , Total_serv_1a12, `% Nível 1 a 12`, tendencia_1a12,
+  select(rank, `Órgão Superior`, Órgão , `Nível 1 a 12`, Total_serv_1a12, `% Nível 1 a 12`, tendencia_1a12,
         # Total_serv_13a17, `% Nível 13 a 17`, tendencia_13a17
          )
 
@@ -356,7 +357,7 @@ tabela_org_sup_perc <- tabela_org_sup |>
   ) |>  
   filter(etnia == "Negras")|> 
   ungroup() |> 
-  mutate(rank=row_number())|>
+  mutate(rank=paste(row_number(), "º"))|>
   select(rank, `Órgão Superior`, `% Nível 1 a 12`, Total_serv_1a12 , `% Nível 13 a 17`, Total_serv_13a17)
 
 # tendendia percentual
@@ -404,8 +405,8 @@ tabela_org_perc <- tabela_org |>
   ) |>  
   filter(etnia == "Negras")|> 
   ungroup() |> 
-  mutate(rank=row_number())|>
-  select(rank, `Órgão Superior`, Órgão, `% Nível 1 a 12`, Total_serv_1a12 , `% Nível 13 a 17`, Total_serv_13a17)
+  mutate(rank=paste(row_number(), "º"))|>
+  select(rank, `Órgão Superior`, Órgão, `Nível 13 a 17`, `% Nível 1 a 12`, Total_serv_1a12 , `% Nível 13 a 17`, Total_serv_13a17)
 
 tend_mensal_org <- tabela_org |>
   group_by(month, mes_cargos,`Órgão Superior` , Órgão) |> 
@@ -423,7 +424,7 @@ tend_mensal_org <- tabela_org |>
 
 subdata_13a17 <-  tabela_org_perc |> 
   left_join(tend_mensal_org, by = join_by(`Órgão Superior`, Órgão)) |> 
-  select(rank, `Órgão Superior`, Órgão , Total_serv_13a17, `% Nível 13 a 17`, tendencia_13a17)
+  select(rank, `Órgão Superior`, `Nível 13 a 17`, Órgão , Total_serv_13a17, `% Nível 13 a 17`, tendencia_13a17)
 
 
 # Salvar base tratada
@@ -600,3 +601,133 @@ html_object<-table|>
 
 
 saveWidget(html_object, "nivel13a17.html", selfcontained = TRUE)
+
+
+# dados tela inicial -------------------------------------------------------
+
+
+df_tela_inicial_1a12 <-  tabela_org_perc |> 
+  left_join(tend_mensal_org, by = join_by(`Órgão Superior`, Órgão)) |> 
+  select(rank, `Órgão Superior`, Órgão , Total_serv_1a12, `% Nível 1 a 12`, tendencia_1a12,
+         Total_serv_13a17, `% Nível 13 a 17`, tendencia_13a17) |> slice_head(n= 10)
+
+
+library(plotly)
+trace1 <- list(
+  name = "Níveis de 1 a 12", 
+  type = "bar", 
+  x = df_tela_inicial_1a12$`% Nível 1 a 12`, 
+  y = df_tela_inicial_1a12$Órgão, 
+  width = 0.5, 
+  marker = list(color = "#004580"), 
+  text = paste(df_tela_inicial_1a12$`% Nível 1 a 12`, "%"),
+  textfont = list(color = "white"), 
+  orientation = "h", 
+  textposition = "inside"
+)
+# Ordenar as barras com base nos valores decrescentes de "x"
+order <- order(trace1$x, decreasing = FALSE)
+trace1$x <- trace1$x[order]
+trace1$y <- trace1$y[order]
+trace1$text <- trace1$text[order]
+
+data <- list(trace1)
+
+layout <- list(
+  title = "Percentual de Pessoas Negras (Pretas/Pardas)",
+  xaxis = list(
+    side = "button", 
+    range = c(0, 85), 
+    fixedrange = TRUE
+  ), 
+  yaxis = list(
+    fixedrange = TRUE,
+    categoryorder = "array",
+    categoryarray = trace1$y
+  ), 
+  margin = list(l = 200), 
+  showlegend = TRUE
+)
+
+p <- plot_ly()
+p <- add_trace(p, data$data[[1]], name = trace1$name, type = trace1$type, x = trace1$x, y = trace1$y, width = trace1$width, marker = trace1$marker, text = trace1$text, textfont = trace1$textfont, orientation = trace1$orientation, textposition = trace1$textposition)
+p <- layout(p, title = layout$title, xaxis = layout$xaxis, yaxis = layout$yaxis, margin = layout$margin, showlegend = layout$showlegend)
+p
+
+#ranking 13 a 17
+
+df_tela_inicial_13a17 <-  subdata_13a17 |> slice_head(n= 10)
+
+library(plotly)
+trace1 <- list(
+  name = "Níveis de 13 a 17", 
+  type = "bar", 
+  x = df_tela_inicial_13a17$`% Nível 13 a 17`, 
+  y = df_tela_inicial_13a17$Órgão, 
+  width = 0.5, 
+  marker = list(color = "#004580"), 
+  text = paste(df_tela_inicial_13a17$`% Nível 13 a 17`, "%"),
+  textfont = list(color = "white"), 
+  orientation = "h", 
+  textposition = "inside"
+)
+# Ordenar as barras com base nos valores decrescentes de "x"
+order <- order(trace1$x, decreasing = FALSE)
+trace1$x <- trace1$x[order]
+trace1$y <- trace1$y[order]
+trace1$text <- trace1$text[order]
+
+data <- list(trace1)
+
+layout <- list(
+  title = "Percentual de Pessoas Negras (Pretas/Pardas)",
+  xaxis = list(
+    side = "button", 
+    range = c(0, 105), 
+    fixedrange = TRUE
+  ), 
+  yaxis = list(
+    fixedrange = TRUE,
+    categoryorder = "array",
+    categoryarray = trace1$y
+  ), 
+  margin = list(l = 200), 
+  showlegend = TRUE
+)
+
+p <- plot_ly()
+p <- add_trace(p, data$data[[1]], name = trace1$name, type = trace1$type, x = trace1$x, y = trace1$y, width = trace1$width, marker = trace1$marker, text = trace1$text, textfont = trace1$textfont, orientation = trace1$orientation, textposition = trace1$textposition)
+p <- layout(p, title = layout$title, xaxis = layout$xaxis, yaxis = layout$yaxis, margin = layout$margin, showlegend = layout$showlegend)
+p
+
+
+
+
+# formatar_numero_br <- function(serie) {
+#   htmlwidgets::JS(
+#     glue::glue(
+#       "function(params) {return Intl.NumberFormat('pt-BR', { style: 'decimal'}).format(params.value[{{serie}}]);}",
+#       .open = "{{",
+#       .close = "}}"
+#     )
+#   )
+# }
+# 
+# library(echarts4r)
+# df_tela_inicial |> arrange(`% Nível 1 a 12`) |> 
+# e_charts(x = Órgão, timeline = FALSE)  |>
+#   e_bar(`% Nível 1 a 12`, legend = FALSE) |>
+#   e_tooltip("item") |>
+#   e_labels(fontSize = 12,
+#            distance = 10,
+#            position = "inside",
+#            formatter = formatar_numero_br(0)) |>
+#   echarts4r::e_title("Percentual de Pessoas Negras (Pretas/Pardas)", "Cargos Comissionados - Níveis 1 a 12") |>
+#   #echarts4r::e_legend(right = 0) |>
+#   e_x_axis(axisLabel = list( fontSize = 8, interval = 0)) |>
+#   e_format_y_axis(
+#     suffix = " % ",
+#     prefix = "",
+#     formatter = e_axis_formatter(locale = "PT", digits = 0)
+#   ) |>
+#   e_flip_coords()

@@ -58,7 +58,7 @@ tabela <- tabela |>
   # filter(Orgão == "Advocacia-Geral Da Uniao",
   #        `Cargo-Função` == "FCPE & FEX"
   #        ) |> 
-  group_by(Orgão,  `Cargo-Função`) |> 
+  group_by(Órgão,  `Cargo-Função`) |> 
   mutate(
     `% Cargo-Função/Etnia` = scales::percent(Total/sum(Total, na.rm = TRUE))
   ) 
