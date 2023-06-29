@@ -239,7 +239,7 @@ table<-reactable(
                                             round_edges = TRUE, 
                                             fill_color=c("#FFBC51",'#FF3A3A'), 
                                             fill_gradient = TRUE)),
-    tendencia_1a12 = colDef(name="Tendência %",  maxWidth=120,
+    tendencia_1a12 = colDef(name="Tendência % Últimos 5 meses",  maxWidth=120,
                             footer="% Últimos 5 meses",
                             cell=react_sparkline(data, labels=c("first","last"), 
                                                  tooltip_size = "1.1em",
@@ -258,7 +258,8 @@ table<-reactable(
                 rank = colDef(name="", width=295),
                 Órgão = colDef(name="", maxWidth=130, align="left", footer="", footerStyle=list(color='black')), #
                 rank = colDef(name="", style=list(fontSize=13), maxWidth=50, align="right"),
-                Total_serv_1a12 = colDef(name="", minWidth=50),
+                `Nível 1 a 12`=colDef(name="Nº de Pessoas Negras", minWidth=50),
+                Total_serv_1a12 = colDef(name="Nº de Cargos/Funções", minWidth=50),
                 `% Nível 1 a 12` = colDef(name="", minWidth=120, 
                                           cell=data_bars(new, 
                                                          bar_height=8,
@@ -366,7 +367,8 @@ table<-reactable(
                 rank = colDef(name="", width=295),
                 Órgão = colDef(name="", maxWidth=130, align="left", footer="", footerStyle=list(color='black')), #
                 rank = colDef(name="", style=list(fontSize=13), maxWidth=50, align="right"),
-                Total_serv_13a17 = colDef(name="", minWidth=50),
+                `Nível 13 a 17`= colDef(name="Nº de Pessoas Negras", minWidth=50),
+                Total_serv_13a17 = colDef(name="Nº de Cargos/Funções", minWidth=50),
                 `% Nível 13 a 17` = colDef(name="", minWidth=120, 
                                            cell=data_bars(new, 
                                                           bar_height=8,
