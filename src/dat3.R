@@ -424,7 +424,7 @@ tend_mensal_org <- tabela_org |>
 
 subdata_13a17 <-  tabela_org_perc |> 
   left_join(tend_mensal_org, by = join_by(`Órgão Superior`, Órgão)) |> 
-  select(rank, `Órgão Superior`, `Nível 13 a 17`, Órgão , Total_serv_13a17, `% Nível 13 a 17`, tendencia_13a17)
+  select(rank, `Órgão Superior`, Órgão ,`Nível 13 a 17`,  Total_serv_13a17, `% Nível 13 a 17`, tendencia_13a17)
 
 
 # Salvar base tratada
