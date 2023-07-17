@@ -630,12 +630,15 @@ ranking_13_a_17 <- layout(p, title = layout$title, xaxis = layout$xaxis, yaxis =
 
 
 ```{r chuck pizza_nivel_1a12, fig.height=12, fig.width=12}
-html_object <- bscols(ranking_1_a_12,
-       ranking_13_a_17,
+html_object <- bscols(
+       # ranking_1_a_12,
+       # ranking_13_a_17,
        filtro_Orgao,
        figpier_Nivel1a12,
        figpier_Nivel13a17,
-       widths = c( 6,6,12, 6,6),
+       widths = c(
+         #6,6,
+         12, 6,6),
        device = "sm")
 
 bscols(filtro_Orgao, widths = 6)
