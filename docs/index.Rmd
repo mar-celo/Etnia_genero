@@ -155,35 +155,42 @@ figpier_Nivel13a17 <- pier_Nivel13a17 |>
 
 # table
 
-dt2 <- sd_total |> 
-  DT::datatable(
-    filter = "top",  # allows filtering on each column
-    extensions = c(
-      "Buttons",  # add download buttons, etc
-      "Scroller"  # for scrolling down the rows rather than pagination
-    ),
-    rownames = FALSE,  # remove rownames
-    style = "bootstrap",
-    class = "compact",
-    width = "100%",
-    options = list(
-      dom = "Blrtip",  # specify content (search box, etc)
-      deferRender = TRUE,
-      scrollY = 300,
-      scroller = TRUE,
-      columnDefs = list(
-        list(
-          visible = FALSE,
-          targets = c("Órgão Superior")
-        )
-      ),
-      buttons = list(
-        I("colvis"),  # turn columns on and off
-        "csv",  # download as .csv
-        "excel"  # download as .xlsx
-      )
+# Definir as configurações da tabela, incluindo o idioma em Português Brasil
+
+
+# Criar a tabela usando datatable com as configurações personalizadas
+
+configuracao <- list(
+  language = list(
+    info = "Mostrando _START_ até _END_ de _TOTAL_ registros",
+    lengthMenu = "Mostrar _MENU_ registros por página",
+    search = "Pesquisar:",
+    paginate = list(
+      first = "Primeiro",
+      last = "Último",
+      `next` = "Próximo",
+      previous = "Anterior"),
+    aria = list(
+      sortAscending = ": ativar para classificar coluna em ordem crescente",
+      sortDescending = ": ativar para classificar coluna em ordem decrescente"
     )
-  )
+  ),
+  dom = 'Bfrtip',
+  buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+)
+
+
+
+
+
+
+
+
+dt2 <- sd_total |> 
+  DT::datatable(extensions = 'Buttons',
+                options = configuracao,
+                )
+    
 ```
 
 
@@ -426,6 +433,24 @@ bscols(#html_object_1a12,
        device = "sm")
 ```
 
+
+```{r chuck pizza_nivel_1a12, fig.height=12, fig.width=12}
+# html_object <- bscols(
+#        # ranking_1_a_12,
+#        # ranking_13_a_17,
+#        filtro_Orgao_pizza,
+#        figpier_Nivel1a12,
+#        figpier_Nivel13a17,
+#        widths = c(
+#          #6,6,
+#          12, 6,6),
+#        device = "sm")
+# 
+# bscols(filtro_Orgao_pizza, widths = 6)
+# 
+# htmlwidgets::saveWidget(html_object, "pag_inicial.html", selfcontained = TRUE)
+
+```
 <!-- Nível correspondente de Cargo Comissionado Executivo -- CCE ou de Função Comissionada Executiva - FCE - Anexo III do Decreto nº10.829, de 5 de outubro de 2021 -->
 
 <!-- | Nível do cargo em Comissão, da Função de Confiança ou da Função Gratificada  | Nível correspondente de Cargo Comissionado Executivo -- CCE ou de Função Comissionada Executiva - FCE  | -->
@@ -465,4 +490,12 @@ if (orgaoSelectize.value === "(All)" {
   selectize.setValue("", false);
 }
 
+
+$(seletor).DataTable({
+      data: dt2, // array com dados
+      columns: colunas, // vetor com nome das colunas
+      language: {
+        url:"js/lib/pt_br.json"
+      }
+})
 ```
