@@ -162,7 +162,8 @@ figpier_Nivel13a17 <- pier_Nivel13a17 |>
 
 configuracao <- list(
   language = list(
-    info = "Mostrando _START_ até _END_ de _TOTAL_ registros",
+    infoFiltered = "(filtrado num total de _MAX_ registros)",
+    info = "Exibindo _START_ até _END_ de _TOTAL_ registros",
     lengthMenu = "Mostrar _MENU_ registros por página",
     search = "Pesquisar:",
     paginate = list(
@@ -176,15 +177,8 @@ configuracao <- list(
     )
   ),
   dom = 'Bfrtip',
-  buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  buttons = c('csv', 'excel', 'pdf', 'print')
 )
-
-
-
-
-
-
-
 
 dt2 <- sd_total |> 
   DT::datatable(extensions = 'Buttons',
