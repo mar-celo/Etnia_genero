@@ -159,6 +159,9 @@ figpier_Nivel13a17 <- pier_Nivel13a17 |>
 
 
 # Criar a tabela usando datatable com as configurações personalizadas
+```
+
+```{r}
 
 configuracao <- list(
   language = list(
@@ -178,11 +181,18 @@ configuracao <- list(
   ),
   dom = 'Bfrtip',
   buttons = c('csv', 'excel', 'pdf', 'print')
+  
 )
+```
 
+```{r}
 dt2 <- sd_total |> 
-  DT::datatable(extensions = 'Buttons',
-                options = configuracao,
+  DT::datatable(#filter = "top",
+                #style = "bootstrap",
+                class = "compact",
+                width = "100%",
+                extensions = 'Buttons',
+                options = configuracao
                 )
     
 ```
