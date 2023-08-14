@@ -60,9 +60,8 @@ library(htmlwidgets)
 
 #Por órgão 
 
-dados <- readRDS("data/Tab.rds") |> filter(Órgão != "Agencia Brasileira De Inteligencia") |> dplyr::rename(`Natureza Juridica` = natureza_juridica,
-                                 `Raça/Cor` = etnia, 
-                                 `%` = `% Cargo-Função/Etnia`)
+dados <- readRDS("data/Tab.rds") |> filter(Órgão != "Agencia Brasileira De Inteligencia") |> dplyr::rename(`Raça/Cor` = etnia, 
+                  `%` = `% Cargo-Função/Etnia`)
 
 sd_total <- SharedData$new(dados, group = "funcao")
 
@@ -89,8 +88,7 @@ filtro_funcao <- filter_select("Funcao",
 ```
 
 ```{r pizza}
-data_funcao <- dados |> select(`Natureza Juridica`,
-                               `Órgão Superior`,
+data_funcao <- dados |> select(`Órgão Superior`,
                                Órgão, `Raça/Cor`, `Cargo-Função`, Fem, Mas, Total) |> 
   tidyr::pivot_wider(names_from = `Cargo-Função`, values_from = Total) |> 
   filter(Órgão != "Agencia Brasileira De Inteligencia")
@@ -199,7 +197,7 @@ dt2 <- sd_total |>
       columnDefs = list(
         list(
           visible = FALSE,
-          targets = c("Natureza Juridica",  "Órgão Superior")
+          targets = c("Órgão Superior")
         )
       ),
       buttons = list(
@@ -429,7 +427,7 @@ html_object_13a17<-table|>
 
 ### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
 
--   *`Posição Junho de 2023`*
+-   *`Posição Julho de 2023`*
 
 ```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
 bscols(filtro_Orgao, widths = 6)
