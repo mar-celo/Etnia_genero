@@ -60,8 +60,10 @@ library(htmlwidgets)
 
 #Por órgão 
 
-dados <- readRDS("../data/Tab.rds") |> filter(Órgão != "Agencia Brasileira De Inteligencia") |> dplyr::rename(`Raça/Cor` = etnia, 
-                                 `%` = `% Cargo-Função/Etnia`)
+dados <- readRDS("../data/Tab.rds") |> 
+  filter(Órgão != "Agencia Brasileira De Inteligencia") |> 
+  dplyr::rename(`Raça/Cor` = etnia, 
+                `%` = `% Cargo-Função/Etnia`)
 
 sd_total <- SharedData$new(dados, group = "funcao")
 
@@ -418,7 +420,7 @@ dt2 <- sd_total |>
 
 ### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
 
--   *`Posição Julho de 2023`*
+-   *`Posição Agosto de 2023`*
 
 ```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
 bscols(filtro_Orgao_pizza, widths = 6)
@@ -439,6 +441,10 @@ bscols(#html_object_1a12,
 
 
 ```{r chuck pizza_nivel_1a12, fig.height=12, fig.width=12}
+
+# gerar para a tela inicial
+
+# Gere o html_object e salve o Viewer como index.html na pasta observatório
 # html_object <- bscols(
 #        # ranking_1_a_12,
 #        # ranking_13_a_17,
@@ -449,7 +455,7 @@ bscols(#html_object_1a12,
 #          #6,6,
 #          12, 6,6),
 #        device = "sm")
-# 
+
 # bscols(filtro_Orgao_pizza, widths = 6)
 # 
 # htmlwidgets::saveWidget(html_object, "pag_inicial.html", selfcontained = TRUE)
