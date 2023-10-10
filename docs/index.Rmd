@@ -5,7 +5,7 @@ output:
 ---
 
 ```{=html}
-<style type="text/css">
+<style type="text/css"> 
 
 .main-container {
 
@@ -43,7 +43,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FA
 ```
 
 ```{r pkg-load}
-library(DT)
+library(DT) 
 library(plotly)
 library(crosstalk)
 library(readxl)
