@@ -420,7 +420,7 @@ dt2 <- sd_total |>
 
 ### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
 
--   *`Posição Agosto de 2023`*
+-   *`Posição Setembro de 2023`*
 
 ```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
 bscols(filtro_Orgao_pizza, widths = 6)
@@ -445,16 +445,16 @@ bscols(#html_object_1a12,
 # gerar para a tela inicial
 
 # Gere o html_object e salve o Viewer como index.html na pasta observatório
-# html_object <- bscols(
-#        # ranking_1_a_12,
-#        # ranking_13_a_17,
-#        filtro_Orgao_pizza,
-#        figpier_Nivel1a12,
-#        figpier_Nivel13a17,
-#        widths = c(
-#          #6,6,
-#          12, 6,6),
-#        device = "sm")
+html_object <- bscols(
+       # ranking_1_a_12,
+       # ranking_13_a_17,
+       filtro_Orgao_pizza,
+       figpier_Nivel1a12,
+       figpier_Nivel13a17,
+       widths = c(
+         #6,6,
+         12, 6,6),
+       device = "sm")
 
 # bscols(filtro_Orgao_pizza, widths = 6)
 # 
