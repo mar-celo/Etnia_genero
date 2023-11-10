@@ -420,7 +420,7 @@ dt2 <- sd_total |>
 
 ### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
 
--   *`Posição Setembro de 2023`*
+-   *`Posição Outubro de 2023`*
 
 ```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
 bscols(filtro_Orgao_pizza, widths = 6)
