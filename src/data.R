@@ -25,21 +25,21 @@ df <- readr::read_delim("X:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Inf
 
 # Conferencia com o PEP
 
-# df_conf <- df |>
-#   filter(`Agrupamento Geral` == 'CCE & FCE', 
-#          `Mês Cargos` == mes_anterior_abreviado) |> 
-#   group_by(
-#     # orgao_superior_cargos_e_funcoes,
-#     # orgao_vinculado_cargos_e_funcoes,
-#     `Nome Cor Origem Etnica` ,
-#     # sexo,
-#     `Decreto Nivel`
-#   ) |>
-#   dplyr::summarise(
-#     total = sum(`Quantidade de Vinculos (Cargos e Funções)`)
-#   ) |>
-#   ungroup() |>
-#   filter(!`Decreto Nivel` %in% c("Nível 18"))
+df_conf <- df |>
+  filter(`Agrupamento Geral` == 'CCE & FCE',
+         `Mês Cargos` == mes_anterior_abreviado) |>
+  group_by(
+    # orgao_superior_cargos_e_funcoes,
+    # orgao_vinculado_cargos_e_funcoes,
+    `Nome Cor Origem Etnica` ,
+    # sexo,
+    `Decreto Nivel`
+  ) |>
+  dplyr::summarise(
+    total = sum(`Quantidade de Vinculos (Cargos e Funções)`)
+  ) |>
+  ungroup() |>
+  filter(!`Decreto Nivel` %in% c("Nível 18"))
                              
 
 # Etnia = Negras(Preta +Pardo) e demais
