@@ -11,6 +11,7 @@ library(lubridate)
 # Obtenha a data atual
 data_atual <- Sys.Date()
 
+
 # Subtrai um mês da data atual
 data_mes_anterior <- data_atual %m-% months(1)
 
@@ -27,7 +28,9 @@ df <- readr::read_delim("X:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Inf
 
 df_conf <- df |>
   filter(`Agrupamento Geral` == 'CCE & FCE',
-         `Mês Cargos` == mes_anterior_abreviado) |>
+         `Mês Cargos` == mes_anterior_abreviado) |> dplyr::summarise(
+           total = sum(`Quantidade de Vinculos (Cargos e Funções)`)
+         ) 
   group_by(
     # orgao_superior_cargos_e_funcoes,
     # orgao_vinculado_cargos_e_funcoes,
@@ -108,5 +111,7 @@ tabela <- tabela |>
 
 # Salvar base tratada
 saveRDS(tabela, "data/Tab.rds")
+
+
 
 
