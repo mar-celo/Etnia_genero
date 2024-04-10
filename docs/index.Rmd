@@ -420,7 +420,7 @@ dt2 <- sd_total |>
 
 ### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
 
--   *`Posição Fevereiro de 2024`*
+-   *`Posição Março de 2024`*
 
 ```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
 bscols(filtro_Orgao_pizza, widths = 6)
