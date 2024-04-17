@@ -26,10 +26,6 @@ jobs:
           sudo add-apt-repository ppa:cran/libgit2
           sudo apt-get install libgit2-dev
 
-      - name: Renderiza dataR
-        run: Rscript src/data.R
-        working-directory: ./src
-
       - name: Renderiza pagina_inicial
         run: Rscript src/pagina_inicial.R
         working-directory: ./src

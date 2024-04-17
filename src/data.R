@@ -39,7 +39,7 @@ mes_anterior_abreviado <- format(data_mes_anterior, "%B de %Y") |> stringr::str_
 
 # Carregar base de dados direto do repositorio
 
-df <- readr::read_csv("data/etnia_raca.csv")
+#df <- readr::read_csv("data/etnia_raca.csv")
 
 # Conferencia com o PEP
 
