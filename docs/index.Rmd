@@ -4,7 +4,12 @@ output:
     theme: bootstrap
 ---
 
+
+
 ```{=html}
+
+
+
 <style type="text/css"> 
 
 .main-container {
@@ -38,11 +43,14 @@ element.style {
 
 </style>
 ```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FALSE)
 ```
 
 ```{r pkg-load}
+
+# Carregar pacotes
 library(DT) 
 library(plotly)
 library(crosstalk)
@@ -69,27 +77,11 @@ sd_total <- SharedData$new(dados, group = "funcao")
 
 ```
 
-```{r filtro_orgao}
-filtro_Orgao <- filter_select("Orgao", 
-                              "Selecione um Órgão", 
-                              sd_total, 
-                              ~Órgão,
-                              allLevels = TRUE,
-                              multiple = FALSE
-                              )
 
-filtro_funcao <- filter_select("Funcao", 
-                                 "Selecione um Cargo-Função", 
-                                 sd_total, 
-                                 ~`Cargo-Função`, multiple = FALSE
-                                 #inline = TRUE,
-                                 #columns = 1
-                                 )
-
-
-```
 
 ```{r pizza}
+# Retirar ABIN 
+
 data_funcao <- dados |> select(`Órgão Superior`,
                                Órgão, `Raça/Cor`, 
                                `Cargo-Função`, Fem, Mas, Total) |> 
@@ -100,7 +92,7 @@ data_funcao <- dados |> select(`Órgão Superior`,
 sd_pizza <- SharedData$new(data_funcao, group = "funcao")
 
 filtro_Orgao_pizza <- filter_select("Orgao_PIZZA", 
-                              "Selecione um Órgão", 
+                              "Selecione um Órgão:", 
                               sd_pizza, 
                               allLevels = TRUE,
                               ~Órgão,
@@ -155,16 +147,16 @@ figpier_Nivel13a17 <- pier_Nivel13a17 |>
          margin = 0.01) 
 
 
+
+```
+
+```{r}
 # table
 
 # Definir as configurações da tabela, incluindo o idioma em Português Brasil
 
 
 # Criar a tabela usando datatable com as configurações personalizadas
-```
-
-```{r}
-
 configuracao <- list(
   language = list(
     infoFiltered = "(filtrado num total de _MAX_ registros)",
@@ -420,7 +412,9 @@ dt2 <- sd_total |>
 
 ### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
 
--   *`Posição Março de 2024`*
+- *`r format(Sys.Date() %m-% months(1), "%B de %Y") |> stringr::str_to_title()`*
+
+
 
 ```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
 bscols(filtro_Orgao_pizza, widths = 6)
@@ -457,10 +451,20 @@ html_object <- bscols(
        device = "sm")
 
 # bscols(filtro_Orgao_pizza, widths = 6)
-# 
-# htmlwidgets::saveWidget(html_object, "pag_inicial.html", selfcontained = TRUE)
+
+# salvar html_object como index.html
+
+
+library(htmltools)
+
+save_html(html_object, file = "../observatorio/index.html")
 
 ```
+
+
+
+
+
 <!-- Nível correspondente de Cargo Comissionado Executivo -- CCE ou de Função Comissionada Executiva - FCE - Anexo III do Decreto nº10.829, de 5 de outubro de 2021 -->
 
 <!-- | Nível do cargo em Comissão, da Função de Confiança ou da Função Gratificada  | Nível correspondente de Cargo Comissionado Executivo -- CCE ou de Função Comissionada Executiva - FCE  | -->

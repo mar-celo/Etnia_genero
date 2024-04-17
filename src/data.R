@@ -16,13 +16,16 @@ data_atual <- Sys.Date()
 data_mes_anterior <- data_atual %m-% months(1)
 
 # Formate o mês como três letras iniciais com a primeira letra em maiúscula
-mes_anterior_abreviado <- format(data_mes_anterior, "%b") |> stringr::str_to_title()
+mes_anterior_abreviado <- format(data_mes_anterior, "%B de %Y") |> stringr::str_to_title()
 
 
 
+# Carregar base de dados direto do PEP
 
-df <- readr::read_delim("X:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Infograficos/etnia_raca.csv", 
+df <- readr::read_delim("Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Infograficos/etnia_raca.csv", 
     delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+# Carregar base de dados direto do repositorio
 
 # Conferencia com o PEP
 
