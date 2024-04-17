@@ -1,8 +1,20 @@
-library(dplyr)
-library(readxl)
-library(readr)
 
-#Filtro base Funções.qvd mes de março
+
+## code to prepare `DATASET` dataset goes here
+install.packages(c("renv", "dplyr", "lubridate", "janitor", "readr", "echarts4r", "htmltools", "stringr" ))
+
+pacotes <- renv::dependencies() |>
+  dplyr::filter(!Package %in% c("renv", "dplyr")) |>
+  dplyr::pull(Package) |>
+  unique()
+
+install.packages(pacotes)
+
+library(janitor)
+library(dplyr)
+library(readr)
+library(echarts4r)
+library(htmltools)
 
 
 # Carregue a biblioteca lubridate
@@ -22,30 +34,32 @@ mes_anterior_abreviado <- format(data_mes_anterior, "%B de %Y") |> stringr::str_
 
 # Carregar base de dados direto do PEP
 
-df <- readr::read_delim("Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Infograficos/etnia_raca.csv", 
-    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+# df <- readr::read_delim("Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Infograficos/etnia_raca.csv", 
+#     delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 # Carregar base de dados direto do repositorio
 
+df <- readr::read_csv("data/etnia_raca.csv")
+
 # Conferencia com o PEP
 
-df_conf <- df |>
-  filter(`Agrupamento Geral` == 'CCE & FCE',
-         `Mês Cargos` == mes_anterior_abreviado) |> dplyr::summarise(
-           total = sum(`Quantidade de Vinculos (Cargos e Funções)`)
-         ) 
-  group_by(
-    # orgao_superior_cargos_e_funcoes,
-    # orgao_vinculado_cargos_e_funcoes,
-    `Nome Cor Origem Etnica` ,
-    # sexo,
-    `Decreto Nivel`
-  ) |>
-  dplyr::summarise(
-    total = sum(`Quantidade de Vinculos (Cargos e Funções)`)
-  ) |>
-  ungroup() |>
-  filter(!`Decreto Nivel` %in% c("Nível 18"))
+# df_conf <- df |>
+#   filter(`Agrupamento Geral` == 'CCE & FCE',
+#          `Mês Cargos` == mes_anterior_abreviado) |> dplyr::summarise(
+#            total = sum(`Quantidade de Vinculos (Cargos e Funções)`)
+#          ) 
+#   group_by(
+#     # orgao_superior_cargos_e_funcoes,
+#     # orgao_vinculado_cargos_e_funcoes,
+#     `Nome Cor Origem Etnica` ,
+#     # sexo,
+#     `Decreto Nivel`
+#   ) |>
+#   dplyr::summarise(
+#     total = sum(`Quantidade de Vinculos (Cargos e Funções)`)
+#   ) |>
+#   ungroup() |>
+#   filter(!`Decreto Nivel` %in% c("Nível 18"))
                              
 
 # Etnia = Negras(Preta +Pardo) e demais

@@ -1,3 +1,17 @@
+## code to prepare `DATASET` dataset goes here
+install.packages(c("renv", "dplyr", "lubridate", "janitor", "readr",
+                   "echarts4r", "htmltools", "stringr", "crosstalk", "readxl", "RColorBrewer", 
+                   "reactablefmtr", "sysfonts", "showtext", "htmlwidgets" ))
+
+pacotes <- renv::dependencies() |>
+  dplyr::filter(!Package %in% c("renv", "dplyr")) |>
+  dplyr::pull(Package) |>
+  unique()
+
+install.packages(pacotes)
+
+
+
 # Carregar pacotes
 library(DT) 
 library(plotly)

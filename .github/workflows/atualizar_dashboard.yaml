@@ -1,0 +1,47 @@
+name: Atualizar infografico
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+   
+jobs:
+  deploy:
+    name: Atualizar infografico
+    runs-on:  ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+
+      - uses: r-lib/actions/setup-pandoc@v1
+
+      - name: Instalando libs de sistema
+        run: |
+          sudo apt update
+          sudo apt install libudunits2-dev libgdal-dev
+          sudo apt install libprotobuf-dev protobuf-compiler
+          sudo apt install libjq-dev
+          sudo add-apt-repository ppa:cran/libgit2
+          sudo apt-get install libgit2-dev
+
+      - name: Renderiza dataR
+        run: Rscript src/data.R
+        working-directory: ./src
+
+      - name: Renderiza pagina_inicial
+        run: Rscript src/pagina_inicial.R
+        working-directory: ./src
+
+      - name: Renderiza Rmd
+        run: Rscript docs/index.Rmd
+        working-directory: ./docs
+
+      - name: Commit
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add . || echo "No changes to commit"
+          git commit -m 'updating matches' || echo "No changes to commit"
+          git push origin || echo "No changes to commit"
