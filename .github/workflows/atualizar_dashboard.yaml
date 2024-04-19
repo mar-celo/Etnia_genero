@@ -27,12 +27,10 @@ jobs:
           sudo apt-get install libgit2-dev
 
       - name: Renderiza pagina_inicial
-        run: Rscript src/pagina_inicial.R
-        working-directory: ./src
+        run: Rscript pagina_inicial.R
 
       - name: Renderiza Rmd
-        run: Rscript docs/index.Rmd
-        working-directory: ./docs
+        run: Rscript index.Rmd
 
       - name: Commit
         run: |
