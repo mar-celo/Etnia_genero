@@ -28,6 +28,9 @@ jobs:
 
       - name: Renderiza pagina_inicial
         run: Rscript pagina_inicial.R
+        
+      - name: Change directory to src
+        run: cd docs
 
       - name: Renderiza Rmd
         run: Rscript index.Rmd
