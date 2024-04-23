@@ -27,7 +27,7 @@ jobs:
           sudo apt-get install libgit2-dev
 
       - name: Renderiza pagina_inicial
-        run: Rscript pagina_inicial.R
+        run: Rscript pag_inicial.R
         
       - name: Change directory to src
         run: cd docs
