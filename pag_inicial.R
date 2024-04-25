@@ -13,7 +13,8 @@ install.packages(pacotes)
 
 
 # Carregar pacotes
-library(DT) 
+library(DT)
+library(lubridate)
 library(plotly)
 library(crosstalk)
 library(readxl)
