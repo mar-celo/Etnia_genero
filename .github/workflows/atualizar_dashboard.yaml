@@ -3,7 +3,7 @@ name: Atualizar infografico
 on:
   schedule:
     - cron: "0 1 * * *"
-   
+    workflow_dispatch:
 jobs:
   deploy:
     name: Atualizar infografico
@@ -31,7 +31,7 @@ jobs:
         
       - name: Renderiza Rmd
         run: |
-          Rscript "docs/index.Rmd"
+          Rscript docs/index.Rmd
 
       - name: Commit
         run: |
