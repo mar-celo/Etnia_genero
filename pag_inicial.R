@@ -1,5 +1,5 @@
 ## code to prepare `DATASET` dataset goes here
-install.packages(c("renv", "dplyr", "lubridate", "janitor", "readr", "DT", "plotly", "rmarkdown",
+install.packages(c("renv", "dplyr", "tidyr", "lubridate", "janitor", "readr", "DT", "plotly", "rmarkdown",
                    "echarts4r", "htmltools", "stringr", "crosstalk", "readxl", "RColorBrewer", 
                    "reactablefmtr", "sysfonts", "showtext", "htmlwidgets" ))
 
