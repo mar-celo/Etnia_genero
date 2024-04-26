@@ -5,7 +5,7 @@ on:
     branches:
       - main  # Substitua "main" pelo nome do branch que você deseja usar
   schedule:
-    - cron: "*/10 * * * *"  # Agendamento a cada 10 minutos
+    - cron: "0 1 * * *"  # Agendamento todos os dias 1h da manhã
 
 jobs:
   deploy:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
