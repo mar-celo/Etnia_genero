@@ -52,11 +52,12 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FA
 
 # Carregar pacotes
 library(DT) 
+library(tidyr)
+library(dplyr)
 library(plotly)
 library(crosstalk)
 library(readxl)
 library(RColorBrewer)
-library(tidyverse)
 library(reactablefmtr)
 library(sysfonts)
 library(showtext)
