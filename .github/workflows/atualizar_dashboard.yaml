@@ -1,13 +1,14 @@
-name: Atualizar infografico
+name: Atualizar infográfico
 
 on:
-  schedule:
-    - cron: "*/10 * * * *"
-   
+  push:
+    branches:
+      - main  # Substitua "main" pelo nome do branch que você deseja usar
+
 jobs:
   deploy:
-    name: Atualizar infografico
-    runs-on:  ubuntu-latest
+    name: Atualizar infográfico
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -31,12 +32,12 @@ jobs:
         
       - name: Renderiza Rmd
         run: |
-          Rscript -e rmarkdown::render("docs/index.Rmd")
+          Rscript -e 'rmarkdown::render("docs/index.Rmd")'
 
       - name: Commit
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git add . || echo "No changes to commit"
-          git commit -m 'atualizando repositorio' || echo "No changes to commit"
+          git commit -m 'Atualizando repositório' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
