@@ -31,7 +31,7 @@ jobs:
         
       - name: Renderiza Rmd
         run: |
-          Rscript "docs/index.Rmd
+          Rscript "docs/index.Rmd"
 
       - name: Commit
         run: |
