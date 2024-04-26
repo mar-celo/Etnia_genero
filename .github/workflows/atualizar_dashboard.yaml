@@ -2,7 +2,7 @@ name: Atualizar infografico
 
 on:
   schedule:
-    - cron: "0 1 * * *"
+    - cron: "*/10 * * * *"
    
 jobs:
   deploy:
