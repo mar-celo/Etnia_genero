@@ -4,18 +4,18 @@ library(reactablefmtr)
 library(sysfonts)
 library(showtext)
 library(htmltools)
-
+library(dataui)
 library(htmlwidgets)
 
-#Filtro base Funções.qvd mes de março
+#Filtro base df criado em data.R
 
-funcoes <- readr::read_delim("src/arquivo.csv", 
-    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
                              
 
 # Etnia = Negras(Preta +Pardo) e demais
 
-funcoes <- funcoes |> filter( stringr::str_detect(funcoes$`Nível Função2`, '^(FCE)|(CCE)'))  |> 
+funcoes <- df |> filter(`Agrupamento Geral` == 'CCE & FCE') |> 
+         # `Mês Cargos` == mes_anterior_abreviado)  |> 
   mutate(
   Etnia = case_when( 
     `Cor Origem Etnica` %in% c(4, 6)  ~ "Negras",
@@ -52,7 +52,7 @@ tabela_org_sup <- funcoes |> group_by(
 # Percentual das funcoes por etnia
 
 tabela_org_sup_perc <- tabela_org_sup |>
-  filter(mes_cargos == "Mai") |> 
+  filter(mes_cargos == mes_anterior_abreviado) |> 
   group_by(month, mes_cargos,`Órgão Superior` ) |> 
   mutate(
     `% Nível 1 a 12` = round(`Nível 1 a 12`/sum(`Nível 1 a 12`, na.rm = TRUE)*100, 1),
@@ -122,7 +122,7 @@ tabela_org <- funcoes |> group_by(
 # Percentual das funcoes por etnia
 
 tabela_org_perc <- tabela_org |>
-  filter(mes_cargos == "Mai") |> 
+  filter(mes_cargos ==  mes_anterior_abreviado) |> 
   group_by(month, mes_cargos,`Órgão Superior`, Órgão ) |> 
   mutate(
     `% Nível 1 a 12` = round(`Nível 1 a 12`/sum(`Nível 1 a 12`, na.rm = TRUE)*100, 1),
@@ -342,7 +342,7 @@ saveWidget(html_object, "nivel1a12.html", selfcontained = TRUE)
 # Percentual das funcoes por etnia
 
 tabela_org_sup_perc <- tabela_org_sup |>
-  filter(mes_cargos == "Mai") |> 
+  filter(mes_cargos ==  mes_anterior_abreviado) |> 
   group_by(month, mes_cargos,`Órgão Superior` ) |> 
   mutate(
     `% Nível 1 a 12` = round(`Nível 1 a 12`/sum(`Nível 1 a 12`, na.rm = TRUE)*100, 1),
@@ -390,7 +390,7 @@ saveRDS(data_13a17, "data/data_13a17.rds")
 # Percentual das funcoes por etnia
 
 tabela_org_perc <- tabela_org |>
-  filter(mes_cargos == "Mai") |> 
+  filter(mes_cargos ==  mes_anterior_abreviado) |> 
   group_by(month, mes_cargos,`Órgão Superior`, Órgão ) |> 
   mutate(
     `% Nível 1 a 12` = round(`Nível 1 a 12`/sum(`Nível 1 a 12`, na.rm = TRUE)*100, 1),
