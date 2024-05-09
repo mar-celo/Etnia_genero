@@ -1,7 +1,7 @@
 
 
 ## code to prepare `DATASET` dataset goes here
-install.packages(c("renv", "dplyr", "lubridate", "janitor", "readr", "echarts4r", "htmltools", "stringr" ))
+install.packages(c("renv","remotes", "dplyr", "lubridate", "janitor", "readr", "echarts4r", "htmltools", "stringr" ))
 
 pacotes <- renv::dependencies() |>
   dplyr::filter(!Package %in% c("renv", "dplyr")) |>
@@ -9,6 +9,7 @@ pacotes <- renv::dependencies() |>
   unique()
 
 install.packages(pacotes)
+remotes::install_github("timelyportfolio/dataui")
 
 library(janitor)
 library(dplyr)
@@ -25,7 +26,7 @@ data_atual <- Sys.Date()
 
 
 # Subtrai um mês da data atual
-data_mes_anterior <- data_atual %m-% months(1)
+data_mes_anterior <- data_atual %m-% months(2)
 
 # Formate o mês como três letras iniciais com a primeira letra em maiúscula
 mes_anterior_abreviado <- format(data_mes_anterior, "%b") |> stringr::str_to_title()
@@ -34,8 +35,8 @@ mes_anterior_abreviado <- format(data_mes_anterior, "%b") |> stringr::str_to_tit
 
 # Carregar base de dados direto do PEP
 
-df <- readr::read_delim("Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Infograficos/etnia_raca.csv",
-    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+# df <- readr::read_delim("Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Infograficos/etnia_raca.csv",
+#     delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 # Carregar base de dados direto do repositorio
 
