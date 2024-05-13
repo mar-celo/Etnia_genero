@@ -26,7 +26,7 @@ data_atual <- Sys.Date()
 
 
 # Subtrai um mês da data atual
-data_mes_anterior <- data_atual %m-% months(2)
+data_mes_anterior <- data_atual %m-% months(1)
 
 # Formate o mês como três letras iniciais com a primeira letra em maiúscula
 mes_anterior_abreviado <- format(data_mes_anterior, "%b") |> stringr::str_to_title()

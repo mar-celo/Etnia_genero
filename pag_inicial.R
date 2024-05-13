@@ -7,7 +7,7 @@ pacotes <- renv::dependencies() |>
   dplyr::filter(!Package %in% c("renv", "dplyr")) |>
   dplyr::pull(Package) |>
   unique()
-
+remotes::install_github("timelyportfolio/dataui")
 install.packages(pacotes)
 
 

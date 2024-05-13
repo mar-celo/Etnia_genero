@@ -227,10 +227,10 @@ table<-reactable(
                                 )
                               }
     ),
-    Órgão = colDef(name="Órgão", maxWidth=130, align="left"),
+    Órgão = colDef(name="", maxWidth=130, align="left"),
     rank = colDef(name="", style=list(fontSize=13), maxWidth=50, align="right"),
     Total_serv_1a12 = colDef(name="Nº de Cargos/Funções", minWidth=50),
-    `% Nível 1 a 12` =colDef(name="%", minWidth=120,
+    `% Nível 1 a 12` =colDef(name="%", minWidth=100,
                              cell=data_bars(data,
                                             bar_height=8,
                                             text_size=11,
@@ -240,8 +240,8 @@ table<-reactable(
                                             round_edges = TRUE,
                                             fill_color=c("#FFBC51",'#FF3A3A'),
                                             fill_gradient = TRUE)),
-    tendencia_1a12 = colDef(name="Tendência % Últimos 5 meses",  maxWidth=120,
-                            footer="% Últimos 5 meses",
+    tendencia_1a12 = colDef(name="Tendência % Últimos 4 meses",  maxWidth=140,
+                            footer="% Últimos 4 meses",
                             cell=react_sparkline(data, labels=c("first","last"),
                                                  tooltip_size = "1.1em",
                                                  decimals = 1,
@@ -257,12 +257,12 @@ table<-reactable(
               theme =  default(),
               columns = list(
                 `Órgão Superior`=colDef(show=FALSE),
-                rank = colDef(name="", width=295),
-                Órgão = colDef(name="", maxWidth=130, align="left", footer="", footerStyle=list(color='black')), #
+                rank = colDef(name="Posição por Órgão", width=295),
+                Órgão = colDef(name="Órgão", maxWidth=130, align="left", footer="", footerStyle=list(color='black')), #
                 rank = colDef(name="", style=list(fontSize=13), maxWidth=50, align="right"),
                 `Nível 1 a 12`=colDef(name="Nº de Pessoas Negras", minWidth=50),
                 Total_serv_1a12 = colDef(name="Nº de Cargos/Funções", minWidth=50),
-                `% Nível 1 a 12` = colDef(name="", minWidth=120,
+                `% Nível 1 a 12` = colDef(name="", minWidth=100,
                                           cell=data_bars(new,
                                                          bar_height=8,
                                                          text_size=11,
@@ -274,7 +274,7 @@ table<-reactable(
                                                          fill_gradient = TRUE)),
                 # difficulty = colDef(name="", align="center", maxWidth=120,
                 #                     cell=color_tiles(new, bias= 0.4, colors=pal_strive)),
-                tendencia_1a12 = colDef(name="",  maxWidth=120,
+                tendencia_1a12 = colDef(name="",  maxWidth=140,
                                         cell=reactablefmtr::react_sparkline(new, labels=c("first","last"),
                                                                             decimals = 1,
                                                              line_color = "rgb(51, 51, 51)")
@@ -338,7 +338,7 @@ table<-reactable(
                                 )
                               }
     ),
-    Órgão = colDef(name="Órgão", maxWidth=130, align="left"),
+    Órgão = colDef(name="", maxWidth=130, align="left"),
     rank = colDef(name="", style=list(fontSize=13), maxWidth=50, align="right"),
     Total_serv_13a17 = colDef(name="Nº de Cargos/Funções", minWidth=50),
     `% Nível 13 a 17` =colDef(name="%", minWidth=120,
@@ -351,8 +351,8 @@ table<-reactable(
                                              round_edges = TRUE,
                                              fill_color=c("#FFBC51",'#FF3A3A'),
                                              fill_gradient = TRUE)),
-    tendencia_13a17 = colDef(name="Tendência %",  maxWidth=120,
-                             footer="% Últimos 5 meses",
+    tendencia_13a17 = colDef(name="Tendência % Últimos 4 meses",  maxWidth=140,
+                             footer="% Últimos 4 meses",
                              cell=react_sparkline(data, labels=c("first","last"),
                                                   tooltip_size = "1.1em",
                                                   decimals = 1,
@@ -368,8 +368,8 @@ table<-reactable(
               theme =  default(),
               columns = list(
                 `Órgão Superior`=colDef(show=FALSE),
-                rank = colDef(name="", width=295),
-                Órgão = colDef(name="", maxWidth=130, align="left", footer="", footerStyle=list(color='black')), #
+                rank = colDef(name="Posição por Órgão", width=295),
+                Órgão = colDef(name="Órgão", maxWidth=130, align="left", footer="", footerStyle=list(color='black')), #
                 rank = colDef(name="", style=list(fontSize=13), maxWidth=50, align="right"),
                 `Nível 13 a 17`= colDef(name="Nº de Pessoas Negras", minWidth=50),
                 Total_serv_13a17 = colDef(name="Nº de Cargos/Funções", minWidth=50),
@@ -383,7 +383,7 @@ table<-reactable(
                                                           round_edges = TRUE,
                                                           fill_color=c("#FFBC51",'#FF3A3A'),
                                                           fill_gradient = TRUE)),
-                tendencia_13a17 = colDef(name="",  maxWidth=120,
+                tendencia_13a17 = colDef(name="",  maxWidth=140,
                                          cell=react_sparkline(new, labels=c("first","last"),
                                                               decimals = 1,
                                                               line_color = "rgb(51, 51, 51)")
