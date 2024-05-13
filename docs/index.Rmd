@@ -1,4 +1,5 @@
 ---
+title: "Representatividade de Pessoas Negras em Cargos Comissionados"
 output: 
   html_document:
     theme: bootstrap
@@ -66,8 +67,6 @@ library(htmltools)
 library(htmlwidgets)
 library(dataui)
 ```
-
-### Representatividade de Pessoas Negras em Cargos Comissionados por Órgão Superior
 
 
 As tabelas a seguir apresentam uma análise da distribuição de pessoas negras (pretas/pardas) em cargos comissionados de níveis 1 a 12 e de níveis 13 a 17, categorizados de acordo com o Órgão Superior ao qual estão subordinados. Os percentuais indicados fornecem uma visão clara da representatividade dessas pessoas em cargos de liderança e decisão dentro de cada órgão.
