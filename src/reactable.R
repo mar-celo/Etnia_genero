@@ -14,7 +14,7 @@ library(htmlwidgets)
 
 # Etnia = Negras(Preta +Pardo) e demais
 
-funcoes <- df |> filter(`Agrupamento Geral` == 'CCE & FCE') |> 
+funcoes <- df |> filter(`Agrupamento Geral` == 'CCE & FCE', `Orgão Vinculado (Cargos e Funções)` != "Agencia Brasileira De Inteligencia") |> 
          # `Mês Cargos` == mes_anterior_abreviado)  |> 
   mutate(
   Etnia = case_when( 
@@ -68,8 +68,8 @@ tabela_org_sup_perc <- tabela_org_sup |>
     ) |>  
   filter(etnia == "Negras")|> 
   ungroup() |> 
-  mutate(rank=paste(row_number(), "º"))|>
-  select(rank, `Órgão Superior`, `% Nível 1 a 12`, Total_serv_1a12 , `% Nível 13 a 17`, Total_serv_13a17)
+  mutate(rank=paste(row_number(), "º"))|> 
+  select(rank, `Órgão Superior`,  `Nível 1 a 12`, `% Nível 1 a 12`, Total_serv_1a12 , `Nível 13 a 17`, `% Nível 13 a 17`, Total_serv_13a17)
 
 # tendencia percentual
  
@@ -92,7 +92,7 @@ tend_mensal <- tabela_org_sup |>
 data_1a12 <-  tabela_org_sup_perc |> 
   left_join(tend_mensal, by = join_by(`Órgão Superior`)) |> 
   mutate(Órgão = "") |> 
-  select(rank, `Órgão Superior`, Órgão , Total_serv_1a12, `% Nível 1 a 12`, tendencia_1a12,
+  select(rank, `Órgão Superior`, Órgão ,  `Nível 1 a 12`, Total_serv_1a12, `% Nível 1 a 12`, tendencia_1a12,
         # Total_serv_13a17, `% Nível 13 a 17`, tendencia_13a17
          )
 # Salvar base tratada
@@ -359,7 +359,7 @@ tabela_org_sup_perc <- tabela_org_sup |>
   filter(etnia == "Negras")|> 
   ungroup() |> 
   mutate(rank=paste(row_number(), "º"))|>
-  select(rank, `Órgão Superior`, `% Nível 1 a 12`, Total_serv_1a12 , `% Nível 13 a 17`, Total_serv_13a17)
+  select(rank, `Órgão Superior`, `% Nível 1 a 12`, Total_serv_1a12 , `Nível 13 a 17`, `% Nível 13 a 17`, Total_serv_13a17)
 
 # tendendia percentual
 
@@ -382,7 +382,7 @@ tend_mensal <- tabela_org_sup |>
 data_13a17 <-  tabela_org_sup_perc |> 
   left_join(tend_mensal, by = join_by(`Órgão Superior`)) |> 
   mutate(Órgão = "") |> 
-  select(rank, `Órgão Superior`, Órgão , Total_serv_13a17, `% Nível 13 a 17`, tendencia_13a17  )
+  select(rank, `Órgão Superior`, Órgão ,`Nível 13 a 17`, Total_serv_13a17, `% Nível 13 a 17`, tendencia_13a17  )
 
 # Salvar base tratada
 saveRDS(data_13a17, "data/data_13a17.rds")

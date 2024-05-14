@@ -1,11 +1,8 @@
 ---
-title: "Representatividade de Pessoas Negras em Cargos Comissionados"
 output: 
   html_document:
     theme: bootstrap
 ---
-
-
 
 ```{=html}
 
@@ -44,7 +41,6 @@ element.style {
 
 </style>
 ```
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FALSE)
 ```
@@ -68,13 +64,6 @@ library(htmlwidgets)
 library(dataui)
 ```
 
-
-As tabelas a seguir apresentam uma análise da distribuição de pessoas negras (pretas/pardas) em cargos comissionados de níveis 1 a 12 e de níveis 13 a 17, categorizados de acordo com o Órgão Superior ao qual estão subordinados. Os percentuais indicados fornecem uma visão clara da representatividade dessas pessoas em cargos de liderança e decisão dentro de cada órgão.
-
-
-
-Para uma compreensão mais detalhada da representatividade de pessoas negras (pretas/pardas) a nível de órgão, é possível visualizar a mesma classificação dos órgãos subordinados ao clicar nas setas $\blacktriangleright$ de cada Órgão Superior. Essa visualização proporciona uma análise mais granular, permitindo identificar discrepâncias ou tendências específicas dentro de cada órgão em relação à inclusão e diversidade nos cargos comissionados.
-
 ```{r data-load}
 
 #Por órgão 
@@ -87,8 +76,6 @@ dados <- readRDS("../data/Tab.rds") |>
 sd_total <- SharedData$new(dados, group = "funcao")
 
 ```
-
-
 
 ```{r pizza}
 # Retirar ABIN 
@@ -202,7 +189,31 @@ dt2 <- sd_total |>
     
 ```
 
+### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
 
+-   *`r format(Sys.Date() %m-% months(1), "%B de %Y") |> stringr::str_to_title()`*
+
+```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
+bscols(filtro_Orgao_pizza, widths = 6)
+bscols( 
+       figpier_Nivel1a12,
+       figpier_Nivel13a17,
+       widths = c( 6, 6), 
+       device = "sm")
+```
+
+```{r tabela1a12}
+bscols(#html_object_1a12,
+  dt2,
+       widths = 12,
+       device = "sm")
+```
+
+### **Representatividade de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados por Órgão**
+
+As tabelas a seguir apresentam uma análise da distribuição de pessoas negras (pretas/pardas) em cargos comissionados de níveis 1 a 12 e de níveis 13 a 17, categorizados de acordo com o Órgão Superior ao qual estão subordinados. Os percentuais indicados fornecem uma visão clara da representatividade dessas pessoas em cargos de liderança e decisão dentro de cada órgão.
+
+Para uma compreensão mais detalhada da representatividade de pessoas negras (pretas/pardas) a nível de órgão, é possível visualizar a mesma classificação dos órgãos subordinados ao clicar nas setas $\blacktriangleright$ de cada Órgão Superior. Essa visualização proporciona uma análise mais granular, permitindo identificar discrepâncias ou tendências específicas dentro de cada órgão em relação à inclusão e diversidade nos cargos comissionados.
 
 ```{r Rectable_1a12 }
 
@@ -237,6 +248,7 @@ table<-reactable(
     ),
     Órgão = colDef(name="", maxWidth=130, align="left"),
     rank = colDef(name="", style=list(fontSize=13), maxWidth=50, align="right"),
+    `Nível 1 a 12`=colDef(name="Nº de Pessoas Negras", minWidth=50),
     Total_serv_1a12 = colDef(name="Nº de Cargos/Funções", minWidth=50),
     `% Nível 1 a 12` =colDef(name="%", minWidth=100,
                              cell=data_bars(data,
@@ -251,6 +263,7 @@ table<-reactable(
     tendencia_1a12 = colDef(name="Tendência % Últimos 4 meses",  maxWidth=140,
                             footer="% Últimos 4 meses",
                             cell=react_sparkline(data, labels=c("first","last"),
+                                                 label_size = "0.75em",
                                                  tooltip_size = "1.1em",
                                                  decimals = 1,
                                                  tooltip_type=1,
@@ -283,7 +296,8 @@ table<-reactable(
                 # difficulty = colDef(name="", align="center", maxWidth=120,
                 #                     cell=color_tiles(new, bias= 0.4, colors=pal_strive)),
                 tendencia_1a12 = colDef(name="",  maxWidth=140,
-                                        cell=reactablefmtr::react_sparkline(new, labels=c("first","last"),
+                                        cell=reactablefmtr::react_sparkline(new, labels=c("first","last"), 
+                                                                            
                                                                             decimals = 1,
                                                              line_color = "rgb(51, 51, 51)")
                 )
@@ -348,6 +362,7 @@ table<-reactable(
     ),
     Órgão = colDef(name="", maxWidth=130, align="left"),
     rank = colDef(name="", style=list(fontSize=13), maxWidth=50, align="right"),
+    `Nível 13 a 17`= colDef(name="Nº de Pessoas Negras", minWidth=50),
     Total_serv_13a17 = colDef(name="Nº de Cargos/Funções", minWidth=50),
     `% Nível 13 a 17` =colDef(name="%", minWidth=120,
                               cell=data_bars(data,
@@ -362,6 +377,7 @@ table<-reactable(
     tendencia_13a17 = colDef(name="Tendência % Últimos 4 meses",  maxWidth=140,
                              footer="% Últimos 4 meses",
                              cell=react_sparkline(data, labels=c("first","last"),
+                                                  label_size = "0.75em",
                                                   tooltip_size = "1.1em",
                                                   decimals = 1,
                                                   tooltip_type=1,
@@ -393,6 +409,7 @@ table<-reactable(
                                                           fill_gradient = TRUE)),
                 tendencia_13a17 = colDef(name="",  maxWidth=140,
                                          cell=react_sparkline(new, labels=c("first","last"),
+                                                              label_size = "0.75em",
                                                               decimals = 1,
                                                               line_color = "rgb(51, 51, 51)")
                 )
@@ -425,30 +442,6 @@ html_object_13a17
 #saveWidget(html_object_13a17, "nivel13a17.html", selfcontained = TRUE)
 ```
 
-### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
-
-- *`r format(Sys.Date() %m-% months(1), "%B de %Y") |> stringr::str_to_title()`*
-
-
-
-```{r pizza_nivel_1a12, fig.height=12, fig.width=12}
-bscols(filtro_Orgao_pizza, widths = 6)
-bscols( 
-       figpier_Nivel1a12,
-       figpier_Nivel13a17,
-       widths = c( 6, 6), 
-       device = "sm")
-```
-
-
-```{r tabela1a12}
-bscols(#html_object_1a12,
-  dt2,
-       widths = 12,
-       device = "sm")
-```
-
-
 ```{r chuck pizza_nivel_1a12, fig.height=12, fig.width=12}
 
 # gerar para a tela inicial
@@ -476,22 +469,23 @@ save_html(html_object, file = "../observatorio/index.html")
 
 ```
 
-
-
-
-
 <!-- Nível correspondente de Cargo Comissionado Executivo -- CCE ou de Função Comissionada Executiva - FCE - Anexo III do Decreto nº10.829, de 5 de outubro de 2021 -->
 
 <!-- | Nível do cargo em Comissão, da Função de Confiança ou da Função Gratificada  | Nível correspondente de Cargo Comissionado Executivo -- CCE ou de Função Comissionada Executiva - FCE  | -->
+
 <!-- |-------------------------------|-----------------------------------------| -->
+
 <!-- | DAS/FCPE - 3                                                                 | Nível 10 a 12                                                                                          | -->
+
 <!-- | DAS/FCPE - 2                                                                 | Nível 7 a 9                                                                                            | -->
+
 <!-- | DAS/FCPE - 1                                                                 | Nível 5 e 6                                                                                            | -->
+
 <!-- | FG -- 1                                                                      | Nível 3 e 4                                                                                            | -->
+
 <!-- | FG -- 2                                                                      | Nível 2                                                                                                | -->
+
 <!-- | FG - 3                                                                       | Nível 1                                                                                                | -->
-
-
 
 ```{r tabela13a17}
 # bscols(html_object_13a17,
@@ -502,11 +496,14 @@ save_html(html_object, file = "../observatorio/index.html")
 <!-- Correspondente de Cargo Comissionado Executivo -- CCE ou de Função Comissionada Executiva - FCE - Anexo III do Decreto nº10.829, de 5 de outubro de 2021 -->
 
 <!-- | Nível do cargo em Comissão, da Função de Confiança ou da Função Gratificada  | Nível correspondente de Cargo Comissionado Executivo -- CCE ou de Função Comissionada Executiva - FCE  | -->
-<!-- |-------------------------------|-----------------------------------------| -->
-<!-- | DAS/FCPE - 6                                                                 | Nível 17                                                                                               | -->
-<!-- | DAS/FCPE - 5                                                                 | Nível 15 a16                                                                                           | -->
-<!-- | DAS/FCPE - 4                                                                 | Nível 13 a 14                                                                                          | -->
 
+<!-- |-------------------------------|-----------------------------------------| -->
+
+<!-- | DAS/FCPE - 6                                                                 | Nível 17                                                                                               | -->
+
+<!-- | DAS/FCPE - 5                                                                 | Nível 15 a16                                                                                           | -->
+
+<!-- | DAS/FCPE - 4                                                                 | Nível 13 a 14                                                                                          | -->
 
 ```{js echo=FALSE, message=FALSE, warning=FALSE}
 
