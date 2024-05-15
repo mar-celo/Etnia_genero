@@ -447,25 +447,25 @@ html_object_13a17
 # gerar para a tela inicial
 
 # Gere o html_object e salve o Viewer como index.html na pasta observatório
-html_object <- bscols(
+#html_object <- bscols(
        # ranking_1_a_12,
        # ranking_13_a_17,
-       filtro_Orgao_pizza,
-       figpier_Nivel1a12,
-       figpier_Nivel13a17,
-       widths = c(
-         #6,6,
-         12, 6,6),
-       device = "sm")
+       # filtro_Orgao_pizza,
+       # figpier_Nivel1a12,
+       # figpier_Nivel13a17,
+       # widths = c(
+       #   #6,6,
+       #   12, 6,6),
+       # device = "sm")
 
 # bscols(filtro_Orgao_pizza, widths = 6)
 
 # salvar html_object como index.html
 
 
-library(htmltools)
-
-save_html(html_object, file = "../observatorio/index.html")
+# library(htmltools)
+# 
+# save_html(html_object, file = "../observatorio/index.html")
 
 ```
 

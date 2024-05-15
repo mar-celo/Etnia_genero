@@ -6,6 +6,8 @@ on:
       - main  # Substitua "main" pelo nome do branch que você deseja usar
   schedule:
     - cron: "0 1 * * *"  # Agendamento todos os dias 1h da manhã
+env: 
+  GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   deploy:
