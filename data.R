@@ -21,6 +21,12 @@ library(htmltools)
 # Carregue a biblioteca lubridate
 library(lubridate)
 
+locale <- Sys.getlocale("LC_TIME")
+
+# Defina o local para o Brasil
+
+Sys.setlocale("LC_TIME", "pt_BR.ISO8859-1")
+
 # Obtenha a data atual
 data_atual <- Sys.Date()
 
@@ -35,8 +41,8 @@ mes_anterior_abreviado <- format(data_mes_anterior, "%b") |> stringr::str_to_tit
 
 # Carregar base de dados direto do PEP
 
-# df <- readr::read_delim("Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Infograficos/etnia_raca.csv",
-#     delim = ";", escape_double = FALSE, trim_ws = TRUE)
+df <- readr::read_delim("/Volumes/CGINF2/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Infograficos/etnia_raca.csv",
+     delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 # Carregar base de dados direto do repositorio
 
