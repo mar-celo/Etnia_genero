@@ -45,6 +45,7 @@ data_funcao <- dados |> select(`Órgão Superior`,
 
 sd_pizza <- SharedData$new(data_funcao, group = "funcao")
 
+mes <- "Agosto de 2024"
 mes <- format(Sys.Date() %m-% months(1), "%B de %Y") |> stringr::str_to_title()
 
 filtro_Orgao_pizza <- filter_select("Orgao_PIZZA", 
