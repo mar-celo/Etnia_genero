@@ -68,7 +68,7 @@ library(dataui)
 
 #Por órgão 
 
-dados <- readRDS("../data/Tab.rds") |> 
+dados <- readRDS("~/Library/CloudStorage/OneDrive-mtegovbr/data/Nova pasta/Tab.rds") |> 
   filter(Órgão != "Agencia Brasileira De Inteligencia") |> 
   dplyr::rename(`Raça/Cor` = etnia, 
                 `%` = `% Cargo-Função/Etnia`)
@@ -220,8 +220,8 @@ Para uma compreensão mais detalhada da representatividade de pessoas negras (pr
 ```{r Rectable_1a12 }
 
 
-data <- readRDS("../data/data_1a12.rds")
-subdata <-  readRDS("../data/subdata1a12.rds")
+data <- readRDS("~/Library/CloudStorage/OneDrive-mtegovbr/data/Nova pasta/data_1a12.rds")
+subdata <-  readRDS("~/Library/CloudStorage/OneDrive-mtegovbr/data/Nova pasta/subdata1a12.rds")
 
 # Rectable 1a 12 ----------------------------------------------------------
 
@@ -333,8 +333,8 @@ html_object_1a12
 
 ```{r Rectable_13a17}
 
-data <- readRDS("../data/data_13a17.rds")
-subdata <-  readRDS("../data/subdata_13a17.rds")
+data <- readRDS("~/Library/CloudStorage/OneDrive-mtegovbr/data/Nova pasta/data_13a17.rds")
+subdata <-  readRDS("~/Library/CloudStorage/OneDrive-mtegovbr/data/Nova pasta/subdata_13a17.rds")
 
 # Rectable 13 a 17 ----------------------------------------------------------
 
