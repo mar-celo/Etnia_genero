@@ -41,7 +41,7 @@ mes_anterior_abreviado <- format(data_mes_anterior, "%b") |> stringr::str_to_tit
 
 # Carregar base de dados direto do PEP
 
-df <- readr::read_delim("/Volumes/CGINF2/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Infograficos/etnia_raca.csv",
+df <- readr::read_delim("Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Fontes_CSV/Infograficos/etnia_raca.csv",
      delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 # Carregar base de dados direto do repositorio
