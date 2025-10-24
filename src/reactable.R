@@ -21,7 +21,7 @@ funcoes <- df |> filter(`Agrupamento Geral` == 'CCE & FCE', `Orgão Vinculado (C
     `Cor Origem Etnica` %in% c(4, 6)  ~ "Negras",
     .default = "Demais Raça/Cor"
   ),
-  month = format(as.Date(paste("2024", `Mês Cargos`, '01', sep = '-'),"%Y-%b-%d"))
+  month = format(as.Date(paste("2025", `Mês Cargos`, '01', sep = '-'),"%Y-%b-%d"))
 ) |> janitor::clean_names()
 
 

@@ -68,7 +68,7 @@ library(dataui)
 
 #Por órgão 
 
-dados <- readRDS("~/Library/CloudStorage/OneDrive-mtegovbr/data/Nova pasta/Tab.rds") |> 
+dados <- readRDS("../data/Tab.rds") |> 
   filter(Órgão != "Agencia Brasileira De Inteligencia") |> 
   dplyr::rename(`Raça/Cor` = etnia, 
                 `%` = `% Cargo-Função/Etnia`)
@@ -220,8 +220,8 @@ Para uma compreensão mais detalhada da representatividade de pessoas negras (pr
 ```{r Rectable_1a12 }
 
 
-data <- readRDS("~/Library/CloudStorage/OneDrive-mtegovbr/data/Nova pasta/data_1a12.rds")
-subdata <-  readRDS("~/Library/CloudStorage/OneDrive-mtegovbr/data/Nova pasta/subdata1a12.rds")
+data <- readRDS("../data/data_1a12.rds")
+subdata <-  readRDS("../data/subdata1a12.rds")
 
 # Rectable 1a 12 ----------------------------------------------------------
 
@@ -262,8 +262,8 @@ table<-reactable(
                                             round_edges = TRUE,
                                             fill_color=c("#FFBC51",'#FF3A3A'),
                                             fill_gradient = TRUE)),
-    tendencia_1a12 = colDef(name="Tendência % Últimos 4 meses",  maxWidth=140,
-                            footer="% Últimos 4 meses",
+    tendencia_1a12 = colDef(name="Tendência % Últimos 5 meses",  maxWidth=140,
+                            footer="% Últimos 5 meses",
                             cell=react_sparkline(data, labels=c("first","last"),
                                                  label_size = "0.75em",
                                                  tooltip_size = "1.1em",
@@ -333,8 +333,8 @@ html_object_1a12
 
 ```{r Rectable_13a17}
 
-data <- readRDS("~/Library/CloudStorage/OneDrive-mtegovbr/data/Nova pasta/data_13a17.rds")
-subdata <-  readRDS("~/Library/CloudStorage/OneDrive-mtegovbr/data/Nova pasta/subdata_13a17.rds")
+data <- readRDS("../data/data_13a17.rds")
+subdata <-  readRDS("../data/subdata_13a17.rds")
 
 # Rectable 13 a 17 ----------------------------------------------------------
 
@@ -376,8 +376,8 @@ table<-reactable(
                                              round_edges = TRUE,
                                              fill_color=c("#FFBC51",'#FF3A3A'),
                                              fill_gradient = TRUE)),
-    tendencia_13a17 = colDef(name="Tendência % Últimos 4 meses",  maxWidth=140,
-                             footer="% Últimos 4 meses",
+    tendencia_13a17 = colDef(name="Tendência % Últimos 5 meses",  maxWidth=140,
+                             footer="% Últimos 5 meses",
                              cell=react_sparkline(data, labels=c("first","last"),
                                                   label_size = "0.75em",
                                                   tooltip_size = "1.1em",
