@@ -8,7 +8,10 @@ library(dataui)
 library(htmlwidgets)
 
 #Filtro base df criado em data.R
+# Carregar base de dados direto do PEP
 
+df <- readr::read_delim("Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Infograficos/etnia_raca.csv",
+                        delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
                              
 
@@ -140,6 +143,7 @@ tabela_org_perc <- tabela_org |>
   ungroup() |> 
   mutate(rank=paste(row_number(), "º"))|>
   select(rank, `Órgão Superior`, Órgão, `Nível 1 a 12`, `% Nível 1 a 12`, Total_serv_1a12 , `% Nível 13 a 17`, Total_serv_13a17)
+
 
 tend_mensal_org <- tabela_org |>
   group_by(month, mes_cargos,`Órgão Superior` , Órgão) |> 
