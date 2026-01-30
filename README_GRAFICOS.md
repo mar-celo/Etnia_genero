@@ -1,6 +1,8 @@
-# Gerador de Gráficos - Etnia e Gênero
+# Gerador de Gráficos - Funções e Cargos
 
 Este repositório contém um script Python para gerar gráficos automaticamente a partir das tabelas de dados na pasta `data/`.
+
+**Nota**: Embora o repositório seja chamado "Etnia_genero", este script analisa dados de funções e cargos comissionados.
 
 ## 📊 Descrição
 

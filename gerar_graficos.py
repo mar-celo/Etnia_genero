@@ -31,6 +31,23 @@ try:
     df = pd.read_csv(csv_file)
     print(f"✓ Dados carregados com sucesso: {len(df)} registros")
     print(f"✓ Colunas disponíveis: {list(df.columns)}")
+    
+    # Validar colunas esperadas
+    required_columns = ['Agrupamento_Decreto', 'Agrupamento Geral', 
+                       'Tipo Função Detalhada2', 'Subnível Função2']
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    if missing_columns:
+        print(f"✗ Erro: Colunas obrigatórias não encontradas: {missing_columns}")
+        print(f"  Colunas disponíveis: {list(df.columns)}")
+        exit(1)
+        
+except FileNotFoundError:
+    print(f"✗ Erro: Arquivo não encontrado: {csv_file}")
+    print("  Certifique-se de que o arquivo existe na pasta data/")
+    exit(1)
+except pd.errors.EmptyDataError:
+    print(f"✗ Erro: Arquivo CSV está vazio: {csv_file}")
+    exit(1)
 except Exception as e:
     print(f"✗ Erro ao carregar dados: {e}")
     exit(1)
