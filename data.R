@@ -444,6 +444,11 @@ saveRDS(comissionados_etnia_mes, "data/Tab_inds_4_mes.rds")
 
 anomes_anterior <- as.yearmon(Sys.Date() %m-% months(1))
 
+
+setnames(comissionados_etnia,
+         gsub("N.v","Niv",names(comissionados_etnia))
+         )
+
 # comissionados_negros_mes <-
 comissionados_etnia %>%
   filter(anomes == anomes_anterior) %>% #NROW
@@ -459,9 +464,9 @@ comissionados_etnia %>%
                       "Demais Raça/Cor")
         )
       ),
-    .SDcols = c("Nível 1 a 12","Nível 13 a 17","qtde")
+    .SDcols = c("Nivel 1 a 12","Nivel 13 a 17","qtde")
     ] %>% 
-  melt(measure.vars = c("Nível 1 a 12","Nível 13 a 17","qtde")) %>%  
+  melt(measure.vars = c("Nivel 1 a 12","Nivel 13 a 17","qtde")) %>%  
   .[,p_etnia := round(100*value/sum(value),2),
     .(cod_orgao_cargos_e_funcoes,
       orgao_superior_cargos_e_funcoes,
@@ -473,8 +478,8 @@ comissionados_etnia %>%
     values_from = p_etnia,
     values_fill = 0) %>%
   setDT %>%
-  .[,`:=`(ind4_1_a_12 = `Nível 1 a 12`/qtde,
-          ind4_13_a_17 = `Nível 13 a 17`/qtde)]-> comissionados_etnia_orgao
+  .[,`:=`(ind4_1_a_12 = round(`Nivel 1 a 12`/qtde,2),
+          ind4_13_a_17 = round(`Nivel 13 a 17`/qtde,2))]-> comissionados_etnia_orgao
 
 
 # Salvar base tratada
