@@ -2,7 +2,8 @@
 
 ## code to prepare `DATASET` dataset goes here
 install.packages(c("renv","remotes", "dplyr", "lubridate", "janitor", "readr",
-                   "echarts4r", "htmltools", "stringr" ,"zoo"))
+                   "echarts4r", "htmltools", "stringr" ,"zoo","data.table",
+                   "sparklyr","pysparklyr","reticulate"))
 
 pacotes <- renv::dependencies() |>
   dplyr::filter(!Package %in% c("renv", "dplyr")) |>
@@ -14,11 +15,17 @@ remotes::install_github("timelyportfolio/dataui")
 
 library(janitor)
 library(dplyr)
+library(dbplyr)
+library(data.table)
 library(readr)
 library(echarts4r)
 library(htmltools)
 library(zoo)
 library(stringr)
+library(sparklyr)
+library(sparklyr)
+library(pysparklyr)
+library(reticulate)
 
 
 
@@ -66,7 +73,7 @@ df <- readr::read_delim(file.path(pep_folder, "/etnia_raca.csv"),
 
 # Conferencia com o PEP
 
-df_conf <- etnia_raca |>
+df_conf <- df |>
   # filter(#`Agrupamento Geral` == 'CCE & FCE' ,
   #        `Mês Cargos` == mes_anterior_abreviado,
   #         `Ano Cargos` == ano_corrente
@@ -133,12 +140,12 @@ tabela <- df |>
   tidyr::pivot_wider(
     names_from =sexo,
     values_from = total) |> 
-  rowwise()  #%>% View
+  rowwise()  %>% 
   mutate(
     Total = sum(c_across(Fem:Mas), na.rm = TRUE
     )
-  ) |> 
-  filter(`Cargo-Função` %in% c("Nível 1 a 12", "Nível 13 a 17"))
+  ) #%>% #View
+  # filter(`Cargo-Função` %in% c("Nível 1 a 12", "Nível 13 a 17"))
 
 
 
@@ -163,7 +170,36 @@ saveRDS(tabela, "data/Tab.rds")
 ### Indicadores 1 e 2: % de negros (mensal) ----
 
 
+## agregados por mês e Etnia
+comissionados_negros_mes <- df |>  
+  filter(agrupamento_geral == 'CCE & FCE',
+         orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") |>
+  group_by(
+    mes_ano_cargos,
+    etnia,
+    # sexo,
+    decreto_nivel
+  ) |>
+  dplyr::summarise(
+    total = sum(quantidade_de_vinculos_cargos_e_funcoes)
+  ) |> 
+  ungroup() |>
+  filter(!decreto_nivel %in% c("Nível 18")) |>  
+  mutate(anomes = as.yearmon(mes_ano_cargos,"%B %Y"))
+
+## percentuais
+setDT(comissionados_negros_mes)
+comissionados_negros_mes[,`:=`(p_negras = 100*total/sum(total)),
+                 .(mes_ano_cargos,decreto_nivel)]
+comissionados_negros_mes <- comissionados_negros_mes[etnia %in% "Negras"]
+
+
+# Salvar base tratada
+saveRDS(comissionados_negros_mes, "data/Tab_inds_1_e_2.rds")
+
+########################################################################.
 ### Indicador 3: necessidade de cargos vagos ----
+########################################################################.
 
 cargos_disp <- readxl::read_excel("data/orgao_superior_cargos.xlsx") %>% setDT
 cargos_disp[,`:=`(
@@ -247,7 +283,7 @@ tabela_vagos <-
 tabela_vagos[,`:=`( necessidade_vagas =  ceiling(Total_ocupados*0.3) - total_negras,
                     cargos_disponiveis = total_dist - Total_ocupados)]
 tabela_vagos[,`:=`( indice_necessidade = (necessidade_vagas/(cargos_disponiveis + 1)) %>%
-                      ifelse(.< 0,NA,.))]
+                      ifelse(.<= 0,NA,.))]
 
 tabela_vagos <- 
   select(tabela_vagos,
@@ -261,7 +297,185 @@ tabela_vagos <-
          cargos_disponiveis,
          indice_necessidade
   ) %>%
-  filter(!is.na(indice_necessidade))
-
+  filter(!is.na(indice_necessidade),
+         orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") 
 # Salvar base tratada
 saveRDS(tabela_vagos, "data/Tab_ind3.rds")
+
+
+########################################################################.
+### Indicador 4: necessidade de cargos vagos ----
+########################################################################.
+
+####
+## Extração de dados ----
+###
+
+
+# conectando databricks
+use_virtualenv("C:/venvs/r-reticulate3", required = TRUE)
+sc <- sparklyr::spark_connect( master     = Sys.getenv("master"),
+                               cluster_id = Sys.getenv("DATABRICKS_CLUSTER_ID"), 
+                               token      = Sys.getenv("DATABRICKS_TOKEN"),  
+                               method     = "databricks_connect",  
+                               envname    = "r-reticulate3")
+
+
+# ler dados de volume parquet no databricks   
+df_parquet <- sparklyr::spark_read_parquet(sc,
+                                           name = "tmp_parquet",
+                                           "/Volumes/mgi-bronze/raw_data_volumes/mgi/cginf/servidores_dwsiape_mensal_funcoes")  
+
+
+# agrupando e extraindo
+df_parquet %>%
+  group_by(mes,nome_mes,
+           orgao_superior_vinc,nome_orgao_superior_vinc,
+           orgao_vinc,nome_orgao_vinc,
+           # sexo,nome_sexo,
+           cor_origem_etnica,nome_cor_origem_etnica,
+           # funcao,nome_funcao
+           ) %>%
+  filter(nome_orgao_vinc != "ABIN") %>%
+  summarise(qtde = sum(qtde_vinculos)) %>%
+  arrange(mes,desc(qtde)) %>%
+  collect() %>%
+  setDT -> total_etnia_mes
+
+sparklyr::spark_disconnect(sc)
+
+
+####
+## Juntando totais servidores com totais comissionados ----
+####
+
+
+# agrupando comissionados
+comissionados_etnia <- df |>  
+  filter(funcao == 'FEX',
+         orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") |>
+  group_by(
+    cod_orgao_cargos_e_funcoes,
+    orgao_superior_cargos_e_funcoes,
+    orgao_vinculado_cargos_e_funcoes,
+    mes_ano_cargos,
+    nome_cor_origem_etnica,
+    # sexo,
+    decreto_nivel
+  ) |>
+  dplyr::summarise(
+    comissao = sum(quantidade_de_vinculos_cargos_e_funcoes)
+  ) |> 
+  ungroup() |>
+  filter(!decreto_nivel %in% c("Nível 18")) |>  
+  mutate(anomes = as.yearmon(mes_ano_cargos,"%B %Y"))  %>%
+  tidyr::pivot_wider(
+    names_from =decreto_nivel,
+    values_from = comissao,
+    values_fill = 0)
+  
+
+####
+## Indicador 4 por etnia e mês ----
+####
+
+## jutando as duas coisas
+comissionados_etnia <- 
+  inner_join(
+    comissionados_etnia,
+    total_etnia_mes %>%
+      select(nome_mes,orgao_vinc,nome_orgao_vinc,nome_cor_origem_etnica,qtde),
+    by = c("mes_ano_cargos" = "nome_mes",
+           "cod_orgao_cargos_e_funcoes" = "orgao_vinc",
+           "nome_cor_origem_etnica")
+    ) %>%
+  setDT
+
+
+## indicadores por mês
+comissionados_etnia_mes <-
+  comissionados_etnia[,lapply(.SD,sum,na.rm = T),
+                      .(nome_cor_origem_etnica,
+                        anomes),
+                      .SDcols = c("Nível 1 a 12","Nível 13 a 17","qtde")
+                      ] %>%
+  melt(id.vars = c("anomes","nome_cor_origem_etnica")) %>% 
+  .[,p_etnia := round(100*value/sum(value),2),
+    .(anomes,variable)] %>%   
+  select(-value) %>%
+  tidyr::pivot_wider(
+    names_from = variable,
+    values_from = p_etnia,
+    values_fill = 0) %>%
+  filter(nome_cor_origem_etnica != "NAO INFORMADO") %>%
+  rbind(.,
+        
+        # comissionados_negros_mes <-
+        comissionados_etnia[,lapply(.SD,sum,na.rm = T),
+                            .(nome_cor_origem_etnica = 
+                                ifelse(nome_cor_origem_etnica %in% c("PARDA","PRETA"),
+                                       "Negras",
+                                       "Demais Raça/Cor"),
+                              anomes),
+                            .SDcols = c("Nível 1 a 12","Nível 13 a 17","qtde")
+                            ] %>%
+          melt(id.vars = c("anomes","nome_cor_origem_etnica")) %>% 
+          .[,p_etnia := round(100*value/sum(value),2),
+            .(anomes,variable)]%>%   
+          select(-value) %>%   
+          tidyr::pivot_wider(
+            names_from =variable,
+            values_from = p_etnia,
+            values_fill = 0) %>% 
+          filter(nome_cor_origem_etnica != "Demais Raça/Cor")
+        ) %>%
+  setDT %>%
+  .[,`:=`(ind4_1_a_12 = `Nível 1 a 12`/qtde,
+          ind4_13_a_17 = `Nível 13 a 17`/qtde)]
+
+
+
+# Salvar base tratada
+saveRDS(comissionados_etnia_mes, "data/Tab_inds_4_mes.rds")
+
+####
+## Indicador 4 por etnia e órgão ----
+####
+
+anomes_anterior <- as.yearmon(Sys.Date() %m-% months(1))
+
+# comissionados_negros_mes <-
+comissionados_etnia %>%
+  filter(anomes == anomes_anterior) %>% #NROW
+  .[,lapply(.SD,sum,na.rm = T),
+    .(cod_orgao_cargos_e_funcoes,
+      orgao_superior_cargos_e_funcoes,
+      orgao_vinculado_cargos_e_funcoes,
+      nome_cor_origem_etnica = 
+        ifelse(nome_cor_origem_etnica %in% c("PARDA","PRETA"),
+               "Negras",
+               ifelse(nome_cor_origem_etnica %in% "BRANCA",
+                      "Brancas",
+                      "Demais Raça/Cor")
+        )
+      ),
+    .SDcols = c("Nível 1 a 12","Nível 13 a 17","qtde")
+    ] %>% 
+  melt(measure.vars = c("Nível 1 a 12","Nível 13 a 17","qtde")) %>%  
+  .[,p_etnia := round(100*value/sum(value),2),
+    .(cod_orgao_cargos_e_funcoes,
+      orgao_superior_cargos_e_funcoes,
+      orgao_vinculado_cargos_e_funcoes,
+      variable)] %>%  
+  select(-value) %>%   
+  tidyr::pivot_wider(
+    names_from =variable,
+    values_from = p_etnia,
+    values_fill = 0) %>%
+  setDT %>%
+  .[,`:=`(ind4_1_a_12 = `Nível 1 a 12`/qtde,
+          ind4_13_a_17 = `Nível 13 a 17`/qtde)]-> comissionados_etnia_orgao
+
+
+# Salvar base tratada
+saveRDS(comissionados_etnia_orgao, "data/Tab_inds_4_orgaos.rds")
