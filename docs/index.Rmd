@@ -1,7 +1,8 @@
 ---
+title: 'Painel de Monitoramento: Diversidade Étnico-Racial em Cargos Comissionados'
 output: 
-  html_document:
-    theme: bootstrap
+  html_document: 
+    toc: true
 ---
 
 ```{=html}
@@ -42,15 +43,18 @@ element.style {
 </style>
 ```
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FALSE)
+# knitr::opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FALSE)
+source("../lib/setup_rmd.R")
 ```
 
 ```{r pkg-load}
 
 # Carregar pacotes
 library(DT) 
+library(scales)
 library(tidyr)
 library(dplyr)
+library(zoo)
 library(lubridate)
 library(plotly)
 library(crosstalk)
@@ -66,7 +70,13 @@ library(dataui)
 
 ```{r data-load}
 
-#Por órgão 
+# Total: evolução no tempo
+comissionados_negros_mes <- readRDS("../data/Tab_inds_1_e_2.rds") %>%
+  rename(`Mes/ano` = anomes,
+         `Cargo-Funcao` = decreto_nivel) %>%
+  .[,`Percentual de pessoas negras` :=  round(p_negras,1)]
+
+# Por órgão 
 
 dados <- readRDS("../data/Tab.rds") |> 
   filter(Órgão != "Agencia Brasileira De Inteligencia") |> 
@@ -75,7 +85,57 @@ dados <- readRDS("../data/Tab.rds") |>
 
 sd_total <- SharedData$new(dados, group = "funcao")
 
+# indicador 3
+Tab_ind3 <- readRDS("../data/Tab_ind3.rds") %>%
+  .[,indice_necessidade :=  round(indice_necessidade,2)] %>%
+  arrange(-indice_necessidade) %>%
+  rename(
+    # `Órgão Superior` = orgao_superior_cargos_e_funcoes,
+    # `Órgão` = orgao_vinculado_cargos_e_funcoes,
+    # `Cargo-Função` = decreto_nivel
+    `Orgao Superior` = orgao_superior_cargos_e_funcoes,
+    `Orgao` = orgao_vinculado_cargos_e_funcoes,
+    `Cargo-Funcao` = decreto_nivel,
+    `Cargos ocupados` = Total_ocupados,
+    `Cargos ocupados por pessoas negras` = total_negras,
+    `Necessidade de vagas para a meta` = necessidade_vagas,
+    `Cargos vagos` = cargos_disponiveis,
+    `Razao de vagas necessarias` = indice_necessidade
+  )
+
+sd_ind3 <- SharedData$new(Tab_ind3, group = "necessidade")
+
 ```
+
+
+# **Indicadores 1 e 2: Participação de pessoas negras em cargos CCE/FCE (níveis 1 a 12 e níveis 13 a 17)**
+
+
+### **Evolução mensal do percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados na Administração Pública Federal**
+
+```{r serie}
+dt_decreto <- as.yearmon("Mar 2023","%b %Y")
+comissionados_negros_mes %>% 
+  ggplot_cat(aes(x = `Mes/ano`,
+                 y = `Percentual de pessoas negras`,
+                 col = `Cargo-Funcao`)) + 
+  geom_line() + 
+  geom_point(size = 2.2) + 
+  # geom_text(aes(label = ifelse(`Mes/ano` == dt_decreto,
+  #                              "Data do decreto",
+  #                              NA))) +
+  geom_vline(xintercept = dt_decreto,linetype = 2)+
+  geom_hline(yintercept = 30,
+             col = pal_primaria["principal"]) +
+  # ylim(0,1.1*max(comissionados_negros_mes$p_negra)) + 
+  labs(x = "",col = "",y = "") -> p_neg_mes
+
+bscols(ggplotly(p_neg_mes),
+       widths = 12,
+       device = "sm")
+```
+
+
 
 ```{r pizza}
 # Retirar ABIN 
@@ -186,11 +246,39 @@ dt2 <- sd_total |>
                 extensions = 'Buttons',
                 options = configuracao
                 )
+
+# tbela necessidade de vagas
+lim <- Tab_ind3[is.finite(`Razao de vagas necessarias`),
+                max(abs(`Razao de vagas necessarias` - 1),na.rm = T)]
+
+pal <- col_numeric(
+  palette = c(pal_primaria["principal"],"white",pal_primaria['ponto']),
+  domain = c(1 - lim, 1 + lim)
+)
+
+dom_nece <- Tab_ind3[,`Razao de vagas necessarias`]
+
+dt3 <- sd_ind3 |> 
+  DT::datatable(#filter = "top",
+                #style = "bootstrap",
+                class = "compact",
+                width = "100%",
+                extensions = 'Buttons',
+                options = configuracao
+                ) %>%
+  formatStyle(
+    'Razao de vagas necessarias',
+    background = styleEqual(dom_nece,pal(dom_nece)),
+    backgroundSize = '98% 88%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  )
+  
 Sys.setlocale("LC_TIME", "pt_BR.ISO8859-1")
     
 ```
 
-### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados**
+### **Percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados por Órgão**
 
 -   *`r format(Sys.Date() %m-% months(1), "%B de %Y") |> stringr::str_to_title()`*
 
@@ -227,7 +315,8 @@ subdata <-  readRDS("../data/subdata1a12.rds")
 
 # color palette for difficulty scale
 text_color="#555555"
-pal_strive<-c('#50C4AA', '#B6C95C', '#FACB3E', '#FC800F', '#FF4759')
+# pal_strive<-c('#50C4AA', '#B6C95C', '#FACB3E', '#FC800F', '#FF4759')
+pal_strive <- pal_complementar[1:5]
 
 # Nivel 1 a 12 ------------------------------------------------------------
 
@@ -527,3 +616,20 @@ $(seletor).DataTable({
       }
 })
 ```
+
+
+
+
+# **Indicador 3: Índice de suficiência de vagas para cumprimento da meta racial**
+
+```{r tab_necesside_vagas}
+bscols(dt3,
+       widths = 12,
+       device = "sm")
+```
+
+
+# **Indicador 4: Índice de equidade de acesso a cargos FCE (raça e gênero) **
+
+
+# Indicador 5: : razão entre remuneração média dos CCEs e FCEs negros em relação á observada entre os brancos
