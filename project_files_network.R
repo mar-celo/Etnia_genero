@@ -11,7 +11,7 @@ list.files(pattern = "\\.((R|r)(md|))$",full.names = T,recursive = T) %>%
                  grep(pattern = "(read|load).*\\(",.,value = T, ignore.case = T) %>% 
                  gsub(".*read.*\\(","",.) %>%
                  str_squish() %>%
-                 gsub("\\)(.{1,3}|)$","",.) %>%
+                 gsub("\\)(.{1,4}|)$","",.) %>%
                  gsub("\\.\\..","",.),
                target = f) %>%
     filter(!grepl("^#",source))
@@ -26,7 +26,7 @@ list.files(pattern = "\\.((R|r)(md|))$",full.names = T,recursive = T) %>%
                  gsub("file = ","",.) %>%
                  gsub(".*\\,","",.)  %>%
                  str_squish()  %>%
-                 gsub("\\)(.{1,3}|)$","",.) %>%
+                 gsub("\\)(.{1,4}|)$","",.) %>%
                  gsub("\\.\\..","",.)
                ) %>%
     filter(!grepl("^#",target))
