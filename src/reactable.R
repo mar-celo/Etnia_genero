@@ -10,7 +10,9 @@ library(htmlwidgets)
 #Filtro base df criado em data.R
 # Carregar base de dados direto do PEP
 
-df <- readr::read_delim("Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Infograficos/etnia_raca.csv",
+pep_folder <- "C:/Users/wesley.jesus/Documents/Monitoramento_politicas_SGP/monitoramento_cotas"
+
+df <- readr::read_delim(file.path(pep_folder, "/etnia_raca.csv"),
                         delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
                              
