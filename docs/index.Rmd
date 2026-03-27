@@ -54,6 +54,7 @@ library(DT)
 library(scales)
 library(tidyr)
 library(dplyr)
+library(data.table)
 library(zoo)
 library(lubridate)
 library(plotly)
@@ -104,6 +105,45 @@ Tab_ind3 <- readRDS("../data/Tab_ind3.rds") %>%
   )
 
 sd_ind3 <- SharedData$new(Tab_ind3, group = "necessidade")
+
+
+# indicador 4
+Tab_ind4_mes <- readRDS( "../data/Tab_inds_4_mes.rds") %>%
+  rename(
+    `Mes/ano` = anomes,
+    `Cor-origem etnica` = nome_cor_origem_etnica,
+    `Razao equidade, niveis 1 a 12` = ind4_1_a_12,
+    `Razao equidade, niveis 13 a 17` = ind4_13_a_17
+  )
+
+Tab_ind4_orgaos <- readRDS( "../data/Tab_inds_4_orgaos.rds") %>% 
+  .[,nome_cor_origem_etnica := iconv(nome_cor_origem_etnica,
+                                     "Latin1",
+                                     "ASCII//TRANSLIT")] %>% 
+   select(
+    orgao_superior_cargos_e_funcoes,
+    orgao_vinculado_cargos_e_funcoes,
+    nome_cor_origem_etnica,
+    qtde,
+    matches("N.vel"),
+    matches("ind4_")
+    ) %>% 
+  rename(
+    `Orgao Superior` = orgao_superior_cargos_e_funcoes,
+    `Orgao` = orgao_vinculado_cargos_e_funcoes,
+    `Cor-origem etnica` = nome_cor_origem_etnica,
+    `Percentual efetivos` = qtde,
+    `Razao equidade, niveis 1 a 12` = ind4_1_a_12,
+    `Razao equidade, niveis 13 a 17` = ind4_13_a_17
+  )
+  
+setnames(Tab_ind4_orgaos,
+         gsub("N.v","Niv",names(Tab_ind4_orgaos))
+         )
+
+# Tab_ind4_orgaos[, `Cor-origem etnica` := gsub("Ra.a","Raca",`Cor-origem etnica`)]
+
+sd_ind4 <- SharedData$new(Tab_ind4_orgaos, group = "funcao")
 
 ```
 
@@ -630,6 +670,90 @@ bscols(dt3,
 
 
 # **Indicador 4: Índice de equidade de acesso a cargos FCE (raça e gênero) **
+
+### **Evolução anual do Índice de equidade de acesso a cargos FCE**
+
+```{r ind4_mes}
+
+gf_base <- Tab_ind4_mes %>%
+  filter(`Cor-origem etnica` %in%
+           c("BRANCA","PRETA","PARDA","Negras")) %>%
+  ggplot_cat(aes(x = `Mes/ano`,
+                 col = `Cor-origem etnica`)) + 
+  geom_hline(yintercept = 1,linetype = 2) + 
+  labs(x = "",col = "",y = "")
+  
+gf1 <- gf_base + 
+  geom_line(aes(y = `Razao equidade, niveis 1 a 12`)) + 
+  geom_point(aes(y = `Razao equidade, niveis 1 a 12`),size = 2.2) +
+  labs(title = "Níveis 1 a 12")
+
+
+gf2 <- gf_base + 
+  geom_line(aes(y = `Razao equidade, niveis 13 a 17`)) + 
+  geom_point(aes(y = `Razao equidade, niveis 13 a 17`),size = 2.2) +
+  labs(title = "Níveis 13 a 17")
+
+
+bscols(ggplotly(gf1),
+       ggplotly(gf2),
+       widths = c(6,6),
+       device = "sm")
+```
+
+
+### **Índice de equidade de acesso a cargos por órgão **
+
+```{r prep_ind4}
+# tbela necessidade de vagas
+lim1 <- Tab_ind4_orgaos[is.finite(`Razao equidade, niveis 1 a 12`),
+                        max(abs(`Razao equidade, niveis 1 a 12` - 1),na.rm = T)]
+
+lim2 <- Tab_ind4_orgaos[is.finite(`Razao equidade, niveis 13 a 17`),
+                        max(abs(`Razao equidade, niveis 13 a 17` - 1),na.rm = T)]
+
+lim <- max(lim1,lim2)
+
+pal <- col_numeric(
+  palette = c(pal_primaria['ponto'],"white",pal_primaria["principal"]),
+  domain = c(1 - lim, 1 + lim)
+)
+
+dom_ind4_12 <- Tab_ind4_orgaos[,`Razao equidade, niveis 1 a 12`]
+dom_ind4_17 <- Tab_ind4_orgaos[,`Razao equidade, niveis 13 a 17`]
+
+dt4 <- sd_ind4 |> 
+  DT::datatable(#filter = "top",
+                #style = "bootstrap",
+                class = "compact",
+                width = "100%",
+                extensions = 'Buttons',
+                options = configuracao
+                ) %>%
+  formatStyle(
+    'Razao equidade, niveis 1 a 12',
+    background = styleEqual(dom_ind4_12,pal(dom_ind4_12)),
+    backgroundSize = '98% 88%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  ) %>%
+  formatStyle(
+    'Razao equidade, niveis 13 a 17',
+    background = styleEqual(dom_ind4_17,pal(dom_ind4_17)),
+    backgroundSize = '98% 88%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  )
+  
+# Sys.setlocale("LC_TIME", "pt_BR.ISO8859-1")
+```
+
+
+```{r tab_equidade}
+bscols(dt4,
+       widths = 12,
+       device = "sm")
+```
 
 
 # Indicador 5: : razão entre remuneração média dos CCEs e FCEs negros em relação á observada entre os brancos

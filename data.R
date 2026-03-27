@@ -461,7 +461,7 @@ comissionados_etnia %>%
                "Negras",
                ifelse(nome_cor_origem_etnica %in% "BRANCA",
                       "Brancas",
-                      "Demais Raça/Cor")
+                      "Demais Raca/Cor")
         )
       ),
     .SDcols = c("Nivel 1 a 12","Nivel 13 a 17","qtde")
