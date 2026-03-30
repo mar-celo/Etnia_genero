@@ -119,19 +119,21 @@ Tab_ind4_mes <- readRDS( "../data/Tab_inds_4_mes.rds") %>%
 Tab_ind4_orgaos <- readRDS( "../data/Tab_inds_4_orgaos.rds") %>% 
   .[,nome_cor_origem_etnica := iconv(nome_cor_origem_etnica,
                                      "Latin1",
-                                     "ASCII//TRANSLIT")] %>% 
+                                     "ASCII//TRANSLIT")]   %>%
+  filter(nome_cor_origem_etnica == "Negras")%>% 
    select(
     orgao_superior_cargos_e_funcoes,
     orgao_vinculado_cargos_e_funcoes,
-    nome_cor_origem_etnica,
+    -nome_cor_origem_etnica,
     qtde,
     matches("N.vel"),
     matches("ind4_")
-    ) %>% 
+    ) %>%
+  setorder(-ind4_13_a_17) %>% 
   rename(
     `Orgao Superior` = orgao_superior_cargos_e_funcoes,
     `Orgao` = orgao_vinculado_cargos_e_funcoes,
-    `Cor-origem etnica` = nome_cor_origem_etnica,
+    # `Cor-origem etnica` = nome_cor_origem_etnica,
     `Percentual efetivos` = qtde,
     `Razao equidade, niveis 1 a 12` = ind4_1_a_12,
     `Razao equidade, niveis 13 a 17` = ind4_13_a_17
@@ -144,6 +146,32 @@ setnames(Tab_ind4_orgaos,
 # Tab_ind4_orgaos[, `Cor-origem etnica` := gsub("Ra.a","Raca",`Cor-origem etnica`)]
 
 sd_ind4 <- SharedData$new(Tab_ind4_orgaos, group = "funcao")
+
+
+
+# indicador 4
+Tab_ind5_mes <- readRDS( "../data/Tab_inds_5_mes.rds") %>%
+  rename(
+    `Mes/ano` = anomes,
+    `Cor-origem etnica` = nome_cor_origem_etnica,
+    `Salario medio` = salario_medio,
+    `Equidade remuneratoria` = ind5
+  )
+
+Tab_ind5_orgaos <- readRDS( "../data/Tab_inds_5_orgaos.rds") %>%
+  setorder(-Negra)%>% 
+  rename(
+    `Orgao Superior` = orgao_superior_cargos_e_funcoes,
+    `Orgao` = orgao_vinculado_cargos_e_funcoes,
+    `Equidade remuneratoria, pessoas Pretas` = Preta,
+    `Equidade remuneratoria, pessoas Pardas` = Parda,
+    `Equidade remuneratoria, pessoas Negras` = Negra
+  ) 
+  
+
+# Tab_ind4_orgaos[, `Cor-origem etnica` := gsub("Ra.a","Raca",`Cor-origem etnica`)]
+
+sd_ind5 <- SharedData$new(Tab_ind5_orgaos, group = "funcao")
 
 ```
 
@@ -756,4 +784,116 @@ bscols(dt4,
 ```
 
 
-# Indicador 5: : razão entre remuneração média dos CCEs e FCEs negros em relação á observada entre os brancos
+#  **Indicador 5: :razão entre remuneração média dos CCEs e FCEs negros em relação á observada entre os brancos**
+
+
+### **Evolução mensal do Índice de equidade remuneratória dos cargos CCE e FCE **
+
+```{r ind5_mes}
+
+gf_medias <- Tab_ind5_mes  %>%
+  ggplot_cat(aes(x = `Mes/ano`,
+                 y = `Salario medio`,
+                 col = `Cor-origem etnica`)) + 
+  # geom_hline(yintercept = 1,linetype = 2) + 
+  geom_line() + 
+  geom_point(size = 2.2) + 
+  labs(x = "",col = "",y = "",title = "Remuneração média")
+  
+gf_ind <- Tab_ind5_mes  %>%
+  # filter(`Cor-origem etnica` != "Branca") %>%
+  ggplot_cat(aes(x = `Mes/ano`,
+                 y = `Equidade remuneratoria`,
+                 col = `Cor-origem etnica`)) + 
+  geom_hline(yintercept = 1,linetype = 2) +
+  geom_line() + 
+  geom_point(size = 2.2) + 
+  labs(x = "",col = "",y = "",title = "Índice de equidade remuneratória")
+
+
+
+bscols(ggplotly(gf_medias),
+       ggplotly(gf_ind),
+       widths = c(6,6),
+       device = "sm")
+```
+
+
+
+
+### **Índice de equidade remuneratória dos cargos CCE e FCE por órgão **
+
+```{r prep_ind5}
+setDT(Tab_ind5_orgaos)
+
+# tbela necessidade de vagas
+lim1 <- Tab_ind5_orgaos[is.finite(`Equidade remuneratoria, pessoas Pardas`),
+                        max(abs(`Equidade remuneratoria, pessoas Pardas` - 1),na.rm = T)]
+
+lim2 <- Tab_ind5_orgaos[is.finite(`Equidade remuneratoria, pessoas Pretas`),
+                        max(abs(`Equidade remuneratoria, pessoas Pretas` - 1),na.rm = T)]
+
+
+lim3 <- Tab_ind5_orgaos[is.finite(`Equidade remuneratoria, pessoas Negras`),
+                        max(abs(`Equidade remuneratoria, pessoas Negras` - 1),na.rm = T)]
+
+pal_1 <- col_numeric(
+  palette = c(pal_primaria['ponto'],"white",pal_primaria["principal"]),
+  domain = c(1 - lim1, 1 + lim1)
+)
+
+pal_2 <- col_numeric(
+  palette = c(pal_primaria['ponto'],"white",pal_primaria["principal"]),
+  domain = c(1 - lim2, 1 + lim2)
+)
+
+
+pal_3 <- col_numeric(
+  palette = c(pal_primaria['ponto'],"white",pal_primaria["principal"]),
+  domain = c(1 - lim3, 1 + lim3)
+)
+
+
+dom_ind5_pardas <- Tab_ind5_orgaos[,`Equidade remuneratoria, pessoas Pardas`]
+dom_ind5_pretas <- Tab_ind5_orgaos[,`Equidade remuneratoria, pessoas Pretas`]
+dom_ind5_negras <- Tab_ind5_orgaos[,`Equidade remuneratoria, pessoas Negras`]
+
+dt5 <- sd_ind5 |> 
+  DT::datatable(#filter = "top",
+                #style = "bootstrap",
+                class = "compact",
+                width = "100%",
+                extensions = 'Buttons',
+                options = configuracao
+                ) %>%
+  formatStyle(
+    'Equidade remuneratoria, pessoas Pardas',
+    background = styleEqual(dom_ind5_pardas,pal_1(dom_ind5_pardas)),
+    backgroundSize = '98% 88%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  ) %>%
+  formatStyle(
+    'Equidade remuneratoria, pessoas Pretas',
+    background = styleEqual(dom_ind5_pretas,pal_2(dom_ind5_pretas)),
+    backgroundSize = '98% 88%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  )%>%
+  formatStyle(
+    'Equidade remuneratoria, pessoas Negras',
+    background = styleEqual(dom_ind5_negras,pal_3(dom_ind5_negras)),
+    backgroundSize = '98% 88%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  )
+  
+# Sys.setlocale("LC_TIME", "pt_BR.ISO8859-1")
+```
+
+
+```{r tab_equidade_sal}
+bscols(dt5,
+       widths = 12,
+       device = "sm")
+```

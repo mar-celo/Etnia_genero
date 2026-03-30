@@ -596,12 +596,12 @@ renda_etnia_mes <-
                           .(nome_cor_origem_etnica = cor_etnia_ag,
                             anomes),
                           .SDcols = c("total","massa_salarial")]%>% 
-          .[,salario_medio := massa_salarial/total] ,
+          .[,salario_medio := round(massa_salarial/total,1)] ,
         fill = T) %>% 
   left_join(.,
             .[nome_cor_origem_etnica == "Branca",
               .(anomes,medio_brancos = salario_medio)]) %>% 
-  .[,ind5 := salario_medio / medio_brancos] %>%
+  .[,ind5 := round(salario_medio / medio_brancos,2)] %>%
   select(-massa_salarial,-medio_brancos,-total)
 
 # Salvar base tratada
@@ -646,7 +646,7 @@ renda_etnia_orgao <-
                 medio_brancos = salario_medio)],
             by = c("orgao_superior_cargos_e_funcoes",
                    "orgao_vinculado_cargos_e_funcoes")) %>% 
-  .[,ind5 := salario_medio / medio_brancos] %>%
+  .[,ind5 := round(salario_medio / medio_brancos,1)] %>%
   select(-massa_salarial,-salario_medio,-medio_brancos,-total) %>%
   filter(nome_cor_origem_etnica != "Branca") %>%  #View
   tidyr::pivot_wider(
