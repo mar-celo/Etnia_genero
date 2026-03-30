@@ -37,6 +37,21 @@ limpa_string <- function(x){
     str_squish()
 }
 
+# função para captar necessidade para meta
+nec_meta <- function(o,n){
+  n_orig <- n
+  while(n/o < 0.3){
+    m <- ceiling(0.3*o)
+    o <- o + (m-n)
+    n <- m
+    # print(n/o)
+    i <- i + 1
+    if(i > 100) break
+  }
+  return(n - n_orig)
+}
+
+
 
 # Carregue a biblioteca lubridate
 
@@ -280,10 +295,25 @@ tabela_vagos <-
   select(-orgao_sup_clean,-orgao_vinc_clean)#,
          # -total_dist.x,-total_dist.y) 
 
-tabela_vagos[,`:=`( necessidade_vagas =  ceiling(Total_ocupados*0.3) - total_negras,
-                    cargos_disponiveis = total_dist - Total_ocupados)]
-tabela_vagos[,`:=`( indice_necessidade = (necessidade_vagas/(cargos_disponiveis + 1)) %>%
-                      ifelse(.<= 0,NA,.))]
+
+# ajuste 1: se ocupados >  distribuídos, distribuídos = ocupados
+tabela_vagos[,total_dist := ifelse(total_dist < Total_ocupados,Total_ocupados,total_dist)]
+
+# ajuste 2: 'algoritmo' para necessidade
+tabela_vagos[,linha:=.I]
+tabela_vagos[,necessidade_vagas := nec_meta(Total_ocupados,total_negras),
+             .(linha)]
+
+# ajuste 3: cargos disponíveis sempre positivo
+tabela_vagos[,`:=`( cargos_disponiveis = total_dist - Total_ocupados)]
+tabela_vagos[,`:=`( indice_necessidade = 
+                      ifelse(necessidade_vagas == 0,
+                             0,
+                             ifelse(cargos_disponiveis == 0,
+                                    99,
+                                    necessidade_vagas/cargos_disponiveis)
+                             )
+                    )]
 
 tabela_vagos <- 
   select(tabela_vagos,
@@ -298,7 +328,10 @@ tabela_vagos <-
          indice_necessidade
   ) %>%
   filter(!is.na(indice_necessidade),
-         orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") 
+         necessidade_vagas > 0,
+         orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") %>%
+  setorder(-indice_necessidade)
+
 # Salvar base tratada
 saveRDS(tabela_vagos, "data/Tab_ind3.rds")
 

@@ -316,7 +316,8 @@ dt2 <- sd_total |>
                 )
 
 # tbela necessidade de vagas
-lim <- Tab_ind3[is.finite(`Razao de vagas necessarias`),
+lim <- Tab_ind3[is.finite(`Razao de vagas necessarias`) & 
+                  `Razao de vagas necessarias` < 99,
                 max(abs(`Razao de vagas necessarias` - 1),na.rm = T)]
 
 pal <- col_numeric(
