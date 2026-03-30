@@ -3,7 +3,7 @@
 ## code to prepare `DATASET` dataset goes here
 install.packages(c("renv","remotes", "dplyr", "lubridate", "janitor", "readr",
                    "echarts4r", "htmltools", "stringr" ,"zoo","data.table",
-                   "sparklyr","pysparklyr","reticulate"))
+                   "sparklyr","pysparklyr","reticulate","readxl","lubridate"))
 
 pacotes <- renv::dependencies() |>
   dplyr::filter(!Package %in% c("renv", "dplyr")) |>
@@ -23,9 +23,10 @@ library(htmltools)
 library(zoo)
 library(stringr)
 library(sparklyr)
-library(sparklyr)
 library(pysparklyr)
 library(reticulate)
+library(readxl)
+library(lubridate)
 
 
 
@@ -38,7 +39,6 @@ limpa_string <- function(x){
 
 
 # Carregue a biblioteca lubridate
-library(lubridate)
 
 locale <- Sys.getlocale("LC_TIME")
 
@@ -308,7 +308,7 @@ saveRDS(tabela_vagos, "data/Tab_ind3.rds")
 ########################################################################.
 
 ####
-## Extração de dados ----
+## 4.1 Extração de dados ----
 ###
 
 
@@ -321,11 +321,23 @@ sc <- sparklyr::spark_connect( master     = Sys.getenv("master"),
                                envname    = "r-reticulate3")
 
 
+df_spark <- spark_read_parquet(
+  sc,
+  name = "servidores",
+  path = "/Volumes/mgi-bronze/raw_data_volumes/mgi/cginf/servidores_dwsiape_mensal_funcoes/"
+)
+
+
 # ler dados de volume parquet no databricks   
 df_parquet <- sparklyr::spark_read_parquet(sc,
                                            name = "tmp_parquet",
                                            "/Volumes/mgi-bronze/raw_data_volumes/mgi/cginf/servidores_dwsiape_mensal_funcoes")  
 
+
+
+df_parquet %>%
+  head(6) %>%
+  collect() %>% View
 
 # agrupando e extraindo
 df_parquet %>%
@@ -346,7 +358,7 @@ sparklyr::spark_disconnect(sc)
 
 
 ####
-## Juntando totais servidores com totais comissionados ----
+## 4.2 Juntando totais servidores com totais comissionados ----
 ####
 
 
@@ -376,7 +388,7 @@ comissionados_etnia <- df |>
   
 
 ####
-## Indicador 4 por etnia e mês ----
+## 4.3 Indicador 4 por etnia e mês ----
 ####
 
 ## jutando as duas coisas
@@ -439,7 +451,7 @@ comissionados_etnia_mes <-
 saveRDS(comissionados_etnia_mes, "data/Tab_inds_4_mes.rds")
 
 ####
-## Indicador 4 por etnia e órgão ----
+## 4.4 Indicador 4 por etnia e órgão ----
 ####
 
 anomes_anterior <- as.yearmon(Sys.Date() %m-% months(1))
@@ -484,3 +496,163 @@ comissionados_etnia %>%
 
 # Salvar base tratada
 saveRDS(comissionados_etnia_orgao, "data/Tab_inds_4_orgaos.rds")
+
+
+
+########################################################################.
+### Indicador 5:  Índice de equidade remuneratória por raça ----
+########################################################################.
+
+
+
+####
+## 5.1 carregando salários por nível FCE e CCE ----
+####
+
+## carregando 
+salarios_niveis <- read_excel("data/tabela_remuneracao_fce_cce.xlsx") %>%
+  setDT %>%
+  janitor::clean_names()
+
+## separando níveis
+salarios_niveis[,`:=`(
+  agrupamento = str_extract_all(cargo_funcao,"FCE|CCE") %>% unlist,
+  nivel = str_extract_all(cargo_funcao,"[0-9]{2}$") %>% unlist
+)] %>%
+  select(agrupamento,nivel,valor) %>%
+  unique -> salarios_niveis
+
+
+####
+## 5.2 contar por órgão, mês, etnia, agrupamento FCE e CCE e nível ----
+####
+
+## agregados
+renda_etnia_nivel <- df |>  
+  filter(agrupamento_geral == 'CCE & FCE',
+         orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") |>
+  mutate(nivel_cce_fce = str_extract_all(nivel_funcao,"[0-9]{2}$") %>% unlist) %>%
+  group_by(
+    orgao_superior_cargos_e_funcoes,
+    orgao_vinculado_cargos_e_funcoes,
+    mes_ano_cargos,
+    funcao,
+    nivel_cce_fce,
+    nome_cor_origem_etnica,
+    sexo
+  ) %>% 
+  dplyr::summarise(
+    total = sum(quantidade_de_vinculos_cargos_e_funcoes)
+  ) %>% 
+  ungroup() %>% 
+  filter(!nivel_cce_fce %in% c("18"),
+         nome_cor_origem_etnica %in% c("BRANCA","PARDA","PRETA")) %>% 
+  mutate(anomes = as.yearmon(mes_ano_cargos,"%B %Y"),
+         funcao = gsub("(CX|EX)","CE",funcao),
+         nome_cor_origem_etnica = stringr::str_to_title(nome_cor_origem_etnica),
+         cor_etnia_ag = ifelse(nome_cor_origem_etnica %in% c("Parda","Preta"),
+                               "Negra",
+                               ifelse(nome_cor_origem_etnica %in% "Branca",
+                                      "Branca",
+                                      "Demais Raca/Cor") %>%
+                                 stringr::str_to_title()
+         ))
+
+## juntando com salários
+renda_etnia_nivel <- 
+  left_join(renda_etnia_nivel,
+            salarios_niveis,
+            by = c("funcao" = "agrupamento",
+                   "nivel_cce_fce" = "nivel")
+            )
+
+## massa salarial no nível
+renda_etnia_nivel[,`:=`(massa_salarial := total*valor)]
+
+
+####
+## 5.3 Indicador 5 por etnia e mês ----
+####
+
+# renda_etnia_nivel[,.(total = sum(total)),
+#                   .(anomes,funcao,
+#                     nivel_cce_fce = ifelse(as.numeric(nivel_cce_fce) <= 12,'0','1'))] %>% 
+#   ggplot(aes(x = anomes,y = total,col = nivel_cce_fce)) + 
+#   geom_line() + 
+#   facet_wrap(funcao ~ .) + 
+#   geom_point()
+
+## indicadores por mês
+renda_etnia_mes <-
+  renda_etnia_nivel[,lapply(.SD,sum,na.rm = T),
+                    .(nome_cor_origem_etnica,
+                      anomes),
+                      .SDcols = c("total","massa_salarial")
+  ] %>% 
+  .[,salario_medio := massa_salarial/total] %>%
+  rbind(.,
+        renda_etnia_nivel[cor_etnia_ag == "Negra",
+                          lapply(.SD,sum,na.rm = T),
+                          .(nome_cor_origem_etnica = cor_etnia_ag,
+                            anomes),
+                          .SDcols = c("total","massa_salarial")]%>% 
+          .[,salario_medio := massa_salarial/total] ,
+        fill = T) %>% 
+  left_join(.,
+            .[nome_cor_origem_etnica == "Branca",
+              .(anomes,medio_brancos = salario_medio)]) %>% 
+  .[,ind5 := salario_medio / medio_brancos] %>%
+  select(-massa_salarial,-medio_brancos,-total)
+
+# Salvar base tratada
+saveRDS(renda_etnia_mes, "data/Tab_inds_5_mes.rds")
+
+
+
+####
+## 5.4 Indicador 5 por etnia e órgão ----
+####
+
+anomes_anterior <- as.yearmon(Sys.Date() %m-% months(1))
+
+
+setnames(comissionados_etnia,
+         gsub("N.v","Niv",names(comissionados_etnia))
+)
+
+renda_etnia_orgao <-
+  renda_etnia_nivel[anomes == anomes_anterior,
+                    lapply(.SD,sum,na.rm = T),
+                    .(orgao_superior_cargos_e_funcoes,
+                      orgao_vinculado_cargos_e_funcoes,
+                      nome_cor_origem_etnica),
+                    .SDcols = c("total","massa_salarial")
+  ] %>% 
+  .[,salario_medio := massa_salarial/total] %>%
+  rbind(.,
+        renda_etnia_nivel[cor_etnia_ag == "Negra" & 
+                            anomes == anomes_anterior,
+                          lapply(.SD,sum,na.rm = T),
+                          .(orgao_superior_cargos_e_funcoes,
+                            orgao_vinculado_cargos_e_funcoes,
+                            nome_cor_origem_etnica = cor_etnia_ag),
+                          .SDcols = c("total","massa_salarial")]%>% 
+          .[,salario_medio := massa_salarial/total] ,
+        fill = T) %>% 
+  left_join(.,
+            .[nome_cor_origem_etnica == "Branca",
+              .(orgao_superior_cargos_e_funcoes,
+                orgao_vinculado_cargos_e_funcoes,
+                medio_brancos = salario_medio)],
+            by = c("orgao_superior_cargos_e_funcoes",
+                   "orgao_vinculado_cargos_e_funcoes")) %>% 
+  .[,ind5 := salario_medio / medio_brancos] %>%
+  select(-massa_salarial,-salario_medio,-medio_brancos,-total) %>%
+  filter(nome_cor_origem_etnica != "Branca") %>%  #View
+  tidyr::pivot_wider(
+    names_from =nome_cor_origem_etnica,
+    values_from = ind5,
+    values_fill = 0)
+
+# Salvar base tratada
+saveRDS(renda_etnia_orgao, "data/Tab_inds_5_orgaos.rds")
