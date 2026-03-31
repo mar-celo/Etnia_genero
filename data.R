@@ -3,7 +3,8 @@
 ## code to prepare `DATASET` dataset goes here
 install.packages(c("renv","remotes", "dplyr", "lubridate", "janitor", "readr",
                    "echarts4r", "htmltools", "stringr" ,"zoo","data.table",
-                   "sparklyr","pysparklyr","reticulate","readxl","lubridate"))
+                   "sparklyr","pysparklyr","reticulate","readxl","lubridate",
+                   "fuzzyjoin"))
 
 pacotes <- renv::dependencies() |>
   dplyr::filter(!Package %in% c("renv", "dplyr")) |>
@@ -27,6 +28,7 @@ library(pysparklyr)
 library(reticulate)
 library(readxl)
 library(lubridate)
+library(fuzzyjoin)
 
 
 
@@ -38,19 +40,19 @@ limpa_string <- function(x){
 }
 
 # função para captar necessidade para meta
-nec_meta <- function(o,n){
-  n_orig <- n
-  while(n/o < 0.3){
-    m <- ceiling(0.3*o)
-    o <- o + (m-n)
-    n <- m
-    # print(n/o)
-    i <- i + 1
-    if(i > 100) break
-  }
-  return(n - n_orig)
+nec_meta <- function(o,n,p = 0.3){
+  n_new = (p*o - n)/(1-p)
+  return(
+    ifelse(n_new < 0,
+           0,
+           ifelse(n_new %% round(n_new,1) <= 1e-10,
+                  round(n_new,0),
+                  ceiling(n_new)
+                  )
+           )
+    )
 }
-
+  
 
 
 # Carregue a biblioteca lubridate
@@ -216,6 +218,10 @@ saveRDS(comissionados_negros_mes, "data/Tab_inds_1_e_2.rds")
 ### Indicador 3: necessidade de cargos vagos ----
 ########################################################################.
 
+
+## 3.1 carregando e ajustando total de cargos distribuídos ----
+
+
 cargos_disp <- readxl::read_excel("data/orgao_superior_cargos.xlsx") %>% setDT
 cargos_disp[,`:=`(
   
@@ -249,6 +255,8 @@ cargos_disp[!is.na(`Cargo-Função`),
   setDT -> cargos_niveis_disp
 
 
+## 3.2 total de cargos ocupados no mesmo mês de cargos distribuídos ----
+
 # tratamento da base
 tabela_vagos <- df |>  
   filter(agrupamento_geral == 'CCE & FCE', 
@@ -273,24 +281,43 @@ tabela_vagos <- df |>
   filter(etnia == "Negras") %>%
   select(-etnia)
 
-# cruzamento com cargos vagos
+### 3.2  cruzamento com cargos vagos ----
 tabela_vagos[,`:=`(orgao_sup_clean = limpa_string(orgao_superior_cargos_e_funcoes),
                    orgao_vinc_clean = limpa_string(orgao_vinculado_cargos_e_funcoes)
                 )]
 
 
+
+## de-para fuzzy, órgão vinculado
+de_para <- stringdist_left_join(tabela_vagos[,.(orgao_vinc_clean)] %>% unique,
+                                cargos_disp[,.(orgao)] %>% unique,
+                                distance_col = 'dist',
+                                method = "cosine",
+                                q = 6,
+                                max_dist = 0.8,
+                                by = c("orgao_vinc_clean" = "orgao")
+                                ) %>%
+  setorder(orgao_vinc_clean,dist) %>%
+  group_by(orgao_vinc_clean) %>%
+  slice_head(n=1) %>%
+  ungroup %>%
+  setDT %>%
+  filter(!grepl("(^vice)|(inteligencia$)",orgao_vinc_clean),
+         dist < 0.75)
+                                
+
+
+
+
 tabela_vagos <-
   tabela_vagos %>%
-  # left_join(cargos_niveis_disp[,.(orgao,
-  #                                 cargo_funcao,
-  #                                 total_dist)],
-  #           by = c("orgao_sup_clean" = "orgao",
-  #                  "decreto_nivel" = "cargo_funcao")) %>%
+  left_join(de_para[,.(orgao_vinc_clean,orgao)],
+            by = "orgao_vinc_clean") %>% 
   left_join(cargos_niveis_disp[,.(orgao,
                                   cargo_funcao,
                                   total_dist)],
-            by = c("orgao_vinc_clean" = "orgao",
-                   "decreto_nivel" = "cargo_funcao")) %>%
+            by = c("orgao",
+                   "decreto_nivel" = "cargo_funcao")) %>% 
   # .[,total_dist := ifelse(is.na(total_dist.x),total_dist.y,total_dist.x)] %>% 
   select(-orgao_sup_clean,-orgao_vinc_clean)#,
          # -total_dist.x,-total_dist.y) 
@@ -301,8 +328,7 @@ tabela_vagos[,total_dist := ifelse(total_dist < Total_ocupados,Total_ocupados,to
 
 # ajuste 2: 'algoritmo' para necessidade
 tabela_vagos[,linha:=.I]
-tabela_vagos[,necessidade_vagas := nec_meta(Total_ocupados,total_negras),
-             .(linha)]
+tabela_vagos[,necessidade_vagas := nec_meta(Total_ocupados,total_negras)]
 
 # ajuste 3: cargos disponíveis sempre positivo
 tabela_vagos[,`:=`( cargos_disponiveis = total_dist - Total_ocupados)]
@@ -315,7 +341,7 @@ tabela_vagos[,`:=`( indice_necessidade =
                              )
                     )]
 
-tabela_vagos <- 
+Tab_ind3 <- 
   select(tabela_vagos,
          orgao_superior_cargos_e_funcoes,
          orgao_vinculado_cargos_e_funcoes,
@@ -354,17 +380,11 @@ sc <- sparklyr::spark_connect( master     = Sys.getenv("master"),
                                envname    = "r-reticulate3")
 
 
-df_spark <- spark_read_parquet(
-  sc,
-  name = "servidores",
-  path = "/Volumes/mgi-bronze/raw_data_volumes/mgi/cginf/servidores_dwsiape_mensal_funcoes/"
-)
-
 
 # ler dados de volume parquet no databricks   
 df_parquet <- sparklyr::spark_read_parquet(sc,
                                            name = "tmp_parquet",
-                                           "/Volumes/mgi-bronze/raw_data_volumes/mgi/cginf/servidores_dwsiape_mensal_funcoes")  
+                                           "/Volumes/mgi-bronze/raw_data_volumes/mgi/cginf/servidores_dwsiape_etnia_efetivos")  
 
 
 
@@ -375,14 +395,13 @@ df_parquet %>%
 # agrupando e extraindo
 df_parquet %>%
   group_by(mes,nome_mes,
-           orgao_superior_vinc,nome_orgao_superior_vinc,
            orgao_vinc,nome_orgao_vinc,
            # sexo,nome_sexo,
            cor_origem_etnica,nome_cor_origem_etnica,
            # funcao,nome_funcao
            ) %>%
   filter(nome_orgao_vinc != "ABIN") %>%
-  summarise(qtde = sum(qtde_vinculos)) %>%
+  summarise(qtde = sum(qtde_vinculos,na.rm = T)) %>%
   arrange(mes,desc(qtde)) %>%
   collect() %>%
   setDT -> total_etnia_mes
