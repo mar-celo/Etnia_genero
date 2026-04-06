@@ -101,6 +101,17 @@ df <- sparklyr::spark_read_csv(sc,
 
 
 
+# Etnia = Negras(Preta +Pardo) e demais
+
+df <- df  |> 
+  #filter( stringr::str_detect(df$`Nível Função2`, '^(FCE)|(CCE)'))  |>
+  mutate(
+    Etnia = case_when( 
+      `Cor Origem Etnica` %in% c(4, 6)  ~ "Negras",
+      .default = "Demais Raça/Cor"
+    )
+  ) |> janitor::clean_names()
+
 
 # Carregar base de dados direto do repositorio
 
@@ -132,17 +143,6 @@ df_conf <- df |>
   mutate(ano_mes := as.yearmon(`Mês-Ano Cargos`, "%B %Y")) 
   # filter(!`Decreto Nivel` %in% c("Nível 18"))
                              
-
-# Etnia = Negras(Preta +Pardo) e demais
-
-df <- df  |> 
-  #filter( stringr::str_detect(df$`Nível Função2`, '^(FCE)|(CCE)'))  |>
-  mutate(
-  Etnia = case_when( 
-    `Cor Origem Etnica` %in% c(4, 6)  ~ "Negras",
-    .default = "Demais Raça/Cor"
-  )
-) |> janitor::clean_names()
 
 
 
@@ -437,9 +437,6 @@ df_parquet <- sparklyr::spark_read_parquet(sc,
 
 
 
-df_parquet %>%
-  head(6) %>%
-  collect() %>% View
 
 # agrupando e extraindo
 df_parquet %>%
@@ -455,7 +452,7 @@ df_parquet %>%
   collect() %>%
   setDT -> total_etnia_mes
 
-sparklyr::spark_disconnect(sc)
+
 
 
 ####
@@ -480,6 +477,7 @@ comissionados_etnia <- df |>
     comissao = sum(quantidade_de_vinculos_cargos_e_funcoes)
   ) |> 
   ungroup() |>
+  collect() %>%
   filter(!decreto_nivel %in% c("Nível 18")) |>  
   mutate(anomes = as.yearmon(mes_ano_cargos,"%B %Y"))  %>%
   tidyr::pivot_wider(
@@ -631,8 +629,22 @@ salarios_niveis[,`:=`(
 ## agregados
 renda_etnia_nivel <- df |>  
   filter(agrupamento_geral == 'CCE & FCE',
-         orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") |>
-  mutate(nivel_cce_fce = str_extract_all(nivel_funcao,"[0-9]{2}$") %>% unlist) %>%
+         orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") %>%
+  group_by(
+    orgao_superior_cargos_e_funcoes,
+    orgao_vinculado_cargos_e_funcoes,
+    mes_ano_cargos,
+    funcao,
+    nivel_funcao,
+    nome_cor_origem_etnica,
+    sexo
+  ) %>% 
+  dplyr::summarise(
+    total = sum(quantidade_de_vinculos_cargos_e_funcoes)
+  ) %>% 
+  ungroup() %>% 
+  collect() %>% 
+  mutate(nivel_cce_fce = str_extract_all(nivel_funcao,"[0-9]{2}$") %>% unlist)  |>
   group_by(
     orgao_superior_cargos_e_funcoes,
     orgao_vinculado_cargos_e_funcoes,
@@ -643,9 +655,9 @@ renda_etnia_nivel <- df |>
     sexo
   ) %>% 
   dplyr::summarise(
-    total = sum(quantidade_de_vinculos_cargos_e_funcoes)
+    total = sum(total)
   ) %>% 
-  ungroup() %>% 
+  ungroup() %>%
   filter(!nivel_cce_fce %in% c("18"),
          nome_cor_origem_etnica %in% c("BRANCA","PARDA","PRETA")) %>% 
   mutate(anomes = as.yearmon(mes_ano_cargos,"%B %Y"),
@@ -657,7 +669,8 @@ renda_etnia_nivel <- df |>
                                       "Branca",
                                       "Demais Raca/Cor") %>%
                                  stringr::str_to_title()
-         ))
+         )) %>%
+  setDT
 
 ## juntando com salários
 renda_etnia_nivel <- 
@@ -668,7 +681,7 @@ renda_etnia_nivel <-
             )
 
 ## massa salarial no nível
-renda_etnia_nivel[,`:=`(massa_salarial := total*valor)]
+renda_etnia_nivel[,`:=`(massa_salarial = total*valor)]
 
 
 ####
@@ -714,7 +727,7 @@ saveRDS(renda_etnia_mes, "data/Tab_inds_5_mes.rds")
 ## 5.4 Indicador 5 por etnia e órgão ----
 ####
 
-anomes_anterior <- as.yearmon(Sys.Date() %m-% months(1))
+anomes_anterior <- as.yearmon(Sys.Date() %m-% months(2))
 
 
 setnames(comissionados_etnia,
@@ -728,7 +741,7 @@ renda_etnia_orgao <-
                       orgao_vinculado_cargos_e_funcoes,
                       nome_cor_origem_etnica),
                     .SDcols = c("total","massa_salarial")
-  ] %>% 
+  ] %>% #View
   .[,salario_medio := massa_salarial/total] %>%
   rbind(.,
         renda_etnia_nivel[cor_etnia_ag == "Negra" & 
@@ -757,3 +770,52 @@ renda_etnia_orgao <-
 
 # Salvar base tratada
 saveRDS(renda_etnia_orgao, "data/Tab_inds_5_orgaos.rds")
+
+
+
+####
+## 5.5 Distribuição de níveis por etnia ----
+####
+
+renda_etnia_nivel[anomes == anomes_anterior & 
+                    nivel_cce_fce != '18',
+                  .(total = sum(total)),
+                  .(nome_cor_origem_etnica,
+                    funcao,
+                    nivel_cce_fce = as.numeric(nivel_cce_fce)
+                  )]  %>%
+  rbind(.,
+        renda_etnia_nivel[anomes == anomes_anterior & 
+                            nivel_cce_fce != '18' & 
+                            cor_etnia_ag == "Negra",
+                          .(nome_cor_origem_etnica = "Negra",
+                            total = sum(total)),
+                          .(funcao,
+                            nivel_cce_fce = as.numeric(nivel_cce_fce)
+                            )])-> nivel_etnia_funcao #%>%
+# .[,p_cce := 100*total/sum(total),
+#   .(nome_cor_origem_etnica,nivel_cce_fce)] %>%  #View
+# filter(funcao == 'CCE') %>%
+# ggplot(aes(x = (nivel_cce_fce),
+#            y = p_cce,
+#            col = nome_cor_origem_etnica,
+#            fill = nome_cor_origem_etnica)) +
+# geom_col(position = 'dodge') +
+# # geom_line(size = 2) +
+# scale_x_continuous(breaks = 1:17,labels = 1:17) +
+# geom_text(aes(label = round(p_cce,1)),
+#           position = position_dodge(width = 0.9),
+#           hjust = 0.7,
+#           vjust = -0.9,
+#           show.legend = F
+#            # position = position_stack()
+#            ) #+
+# facet_wrap(nome_cor_origem_etnica ~. ,ncol = 1)
+
+
+saveRDS(nivel_etnia_funcao, "data/Tab_inds_5_niveis.rds")
+
+
+
+# desconectando
+sparklyr::spark_disconnect(sc)

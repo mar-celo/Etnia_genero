@@ -233,6 +233,9 @@ Tab_ind5_orgaos <-
 
 sd_ind5 <- SharedData$new(Tab_ind5_orgaos, group = "orgao_vinc")
 
+
+Tab_ind5_niveis <- readRDS( "../data/Tab_inds_5_niveis.rds")
+
 ```
 
 
@@ -861,7 +864,7 @@ bscols(dt3,
 
 # **Indicador 3: Índice de equidade de acesso a cargos FCE (raça e gênero) **
 
-### **Evolução anual do Índice de equidade de acesso a cargos FCE**
+## **Evolução anual do Índice de equidade de acesso a cargos FCE**
 
 ```{r ind4_mes}
 
@@ -949,7 +952,7 @@ bscols(dt4,
 #  **Indicador 4: :razão entre remuneração média dos CCEs e FCEs negros em relação á observada entre os brancos**
 
 
-### **Evolução mensal do Índice de equidade remuneratória dos cargos CCE e FCE **
+## **Evolução mensal do Índice de equidade remuneratória dos cargos CCE e FCE **
 
 ```{r ind5_mes}
 
@@ -973,17 +976,17 @@ gf_ind <- Tab_ind5_mes  %>%
   labs(x = "",col = "",y = "",title = "Índice de equidade remuneratória")
 
 
-
-bscols(ggplotly(gf_medias),
-       ggplotly(gf_ind),
-       widths = c(6,6),
-       device = "sm")
+# 
+# bscols(ggplotly(gf_medias),
+#        ggplotly(gf_ind),
+#        widths = c(6,6),
+#        device = "sm") 
 ```
 
 
 
 
-### **Índice de equidade remuneratória dos cargos CCE e FCE por órgão **
+## **Índice de equidade remuneratória dos cargos CCE e FCE por órgão **
 
 ```{r prep_ind5}
 setDT(Tab_ind5_orgaos)
@@ -1055,7 +1058,46 @@ dt5 <- sd_ind5 |>
 
 
 ```{r tab_equidade_sal}
-bscols(dt5,
-       widths = 12,
+# bscols(dt5,
+#        widths = 12,
+#        device = "sm")
+
+Tab_ind5_niveis %>%
+  .[,`Percentual de CCEs` := round(100*total/sum(total),1),
+  .(nome_cor_origem_etnica,
+    nivel_cce_fce)] %>%
+  setnames(c("nivel_cce_fce","nome_cor_origem_etnica"),
+           c("Nivel funcao","Cor/origem etnica")) %>% 
+  filter(funcao == 'CCE') %>% #View
+  ggplot_cat(aes(x = `Nivel funcao`,
+                 y = `Percentual de CCEs`,
+                 fill = `Cor/origem etnica`
+                 )) +
+  geom_col(position = 'dodge')  +
+  # geom_text(aes(label = paste0(round(p_cce,1),"%"),
+  #               col = nome_cor_origem_etnica),
+  #           position = position_dodge(width = 0.9),
+  #           hjust = 0.7,
+  #           vjust = -0.9,
+  #           show.legend = F
+  #           ) +
+  scale_x_continuous(breaks = 1:17,labels = 1:17) +
+  labs(x = "Nível CCE/FCE",
+       y = "Percentual de CCEs",
+       fill = "")  -> plot_cce_nivel_etna
+
+bscols(ggplotly(gf_medias),
+       dt5,
+       widths = c(6,6),
        device = "sm")
+
+bscols(ggplotly(gf_ind),
+       ggplotly(plot_cce_nivel_etna),
+       widths = c(6,6),
+       device = "sm")
+
+# bscols(dt5,
+#        plot_ind4,
+#        widths = c(6,6),
+#        device = "sm")
 ```
