@@ -68,7 +68,7 @@ data_atual <- Sys.Date()
 
 
 # Subtrai um mês da data atual
-data_mes_anterior <- data_atual %m-% months(1)
+data_mes_anterior <- data_atual %m-% months(2)
 
 # Formate o mês como três letras iniciais com a primeira letra em maiúscula
 mes_anterior_abreviado <- format(data_mes_anterior, "%b") |> stringr::str_to_title()
@@ -77,10 +77,28 @@ ano_corrente <- year(data_mes_anterior)
 
 # Carregar base de dados direto do PEP
 # pep_folder <- "Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Infograficos/
-pep_folder <- "C:/Users/wesley.jesus/Documents/Monitoramento_politicas_SGP/monitoramento_cotas"
+# pep_folder <- "C:/Users/wesley.jesus/Documents/Monitoramento_politicas_SGP/monitoramento_cotas"
 
-df <- readr::read_delim(file.path(pep_folder, "/etnia_raca.csv"),
-                        delim = ";", escape_double = FALSE, trim_ws = TRUE)
+# df <- readr::read_delim(file.path(pep_folder, "/etnia_raca.csv"),
+#                         delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+
+
+# conectando databricks
+use_virtualenv("C:/venvs/r-reticulate3", required = TRUE)
+sc <- sparklyr::spark_connect( master     = Sys.getenv("master"),
+                               cluster_id = Sys.getenv("DATABRICKS_CLUSTER_ID"), 
+                               token      = Sys.getenv("DATABRICKS_TOKEN"),  
+                               method     = "databricks_connect",  
+                               envname    = "r-reticulate3")
+
+
+df <- sparklyr::spark_read_csv(sc,
+                               name = 'tmp2',
+                               delimiter = ";",
+                               "/Volumes/mgi-bronze/raw_data_volumes/mgi/cginf/etnia_raca.csv")
+
+
 
 
 
@@ -110,7 +128,8 @@ df_conf <- df |>
     total = sum(`Quantidade de Vinculos (Cargos e Funções)`)
   ) |>
   ungroup() %>%
-  mutate(ano_mes := as.yearmon(`Mês-Ano Cargos`, "%B %Y")) #|>
+  collect() %>%
+  mutate(ano_mes := as.yearmon(`Mês-Ano Cargos`, "%B %Y")) 
   # filter(!`Decreto Nivel` %in% c("Nível 18"))
                              
 
@@ -130,52 +149,49 @@ df <- df  |>
 
 
 
-# tratamento da base
+### Indicador 1: % de negros (por órgão) ----
 
 tabela <- df |>  
   filter(agrupamento_geral == 'CCE & FCE', 
-         ano_cargos == 2026,
-         mes_cargos == "Jan") |> 
+         ano_cargos == ano_corrente,
+         mes_cargos == mes_anterior_abreviado) |> 
   group_by(
     orgao_superior_cargos_e_funcoes,
     orgao_vinculado_cargos_e_funcoes,
     etnia ,
-    sexo,
+    # sexo,
     decreto_nivel
     ) |>
   dplyr::summarise(
     total = sum(quantidade_de_vinculos_cargos_e_funcoes)
     ) |> 
-  ungroup() |>  
-  filter(!decreto_nivel %in% c("Nível 18")) |> 
+  ungroup() %>%
+  collect() %>% 
+  filter(!decreto_nivel %in% c("Nível 18"))   %>%
+  group_by(orgao_vinculado_cargos_e_funcoes, decreto_nivel) |> 
+  mutate(
+    p_nivel = round(100*total/sum(total, na.rm = TRUE),1)
+  ) |>  
+  ungroup() %>%
+  filter(etnia == "Negras") %>%
+  select(-total,-etnia) %>%
   # janitor::adorn_totals()
+  tidyr::pivot_wider(
+    names_from = decreto_nivel,
+    values_from = p_nivel,
+    values_fill = 0,
+    names_sort = T) %>%
   rename(
     `Órgão Superior` = orgao_superior_cargos_e_funcoes,
-    `Órgão` = orgao_vinculado_cargos_e_funcoes,
-    `Cargo-Função` = decreto_nivel
-  ) %>% #View
-  tidyr::pivot_wider(
-    names_from =sexo,
-    values_from = total) |> 
-  rowwise()  %>% 
-  mutate(
-    Total = sum(c_across(Fem:Mas), na.rm = TRUE
-    )
-  ) #%>% #View
+    `Órgão` = orgao_vinculado_cargos_e_funcoes
+    )  %>% #View
+  arrange(`Nível 13 a 17`,`Nível 1 a 12`)
+  # rowwise()  %>% 
+  # mutate(
+  #   Total = sum(c_across(Fem:Mas), na.rm = TRUE
+  #   )
+  # ) #%>% #View
   # filter(`Cargo-Função` %in% c("Nível 1 a 12", "Nível 13 a 17"))
-
-
-
-# Percentual das funcoes por etnia
-
-tabela <- tabela |>
-  # filter(Orgão == "Advocacia-Geral Da Uniao",
-  #        `Cargo-Função` == "FCPE & FEX"
-  #        ) |> 
-  group_by(`Órgão`,  `Cargo-Função`) |> 
-  mutate(
-    `% Cargo-Função/Etnia` = scales::percent(Total/sum(Total, na.rm = TRUE))
-  ) |>  ungroup()
 
 
 
@@ -183,8 +199,48 @@ tabela <- tabela |>
 saveRDS(tabela, "data/Tab.rds")
 
 
+### Indicador 1: % de negros (por órgão superior) ----
 
-### Indicadores 1 e 2: % de negros (mensal) ----
+tabela_sup <- df |>  
+  filter(agrupamento_geral == 'CCE & FCE', 
+         ano_cargos == ano_corrente,
+         mes_cargos == mes_anterior_abreviado) |> 
+  group_by(
+    orgao_superior_cargos_e_funcoes,
+    etnia ,
+    # sexo,
+    decreto_nivel
+  ) |>
+  dplyr::summarise(
+    total = sum(quantidade_de_vinculos_cargos_e_funcoes)
+  ) |> 
+  ungroup() %>%
+  collect() %>% 
+  filter(!decreto_nivel %in% c("Nível 18"))   %>%
+  group_by(orgao_superior_cargos_e_funcoes, decreto_nivel) |> 
+  mutate(
+    p_nivel = round(100*total/sum(total, na.rm = TRUE),1)
+  ) |>  
+  ungroup() %>%
+  filter(etnia == "Negras") %>%
+  select(-total,-etnia) %>%
+  # janitor::adorn_totals()
+  tidyr::pivot_wider(
+    names_from = decreto_nivel,
+    values_from = p_nivel,
+    values_fill = 0,
+    names_sort = T) %>%
+  rename(
+    `Órgão Superior` = orgao_superior_cargos_e_funcoes
+  ) %>% #View
+  arrange(`Nível 13 a 17`,`Nível 1 a 12`)#%>% #View
+
+
+# Salvar base tratada
+saveRDS(tabela_sup, "data/Tab_sup.rds")
+
+
+### Indicadores 1: % de negros (mensal) ----
 
 
 ## agregados por mês e Etnia
@@ -200,9 +256,10 @@ comissionados_negros_mes <- df |>
   dplyr::summarise(
     total = sum(quantidade_de_vinculos_cargos_e_funcoes)
   ) |> 
-  ungroup() |>
+  ungroup() %>%
+  collect() |>
   filter(!decreto_nivel %in% c("Nível 18")) |>  
-  mutate(anomes = as.yearmon(mes_ano_cargos,"%B %Y"))
+  mutate(anomes = as.yearmon(mes_ano_cargos,"%B %Y")) 
 
 ## percentuais
 setDT(comissionados_negros_mes)
@@ -370,14 +427,6 @@ saveRDS(tabela_vagos, "data/Tab_ind3.rds")
 ## 4.1 Extração de dados ----
 ###
 
-
-# conectando databricks
-use_virtualenv("C:/venvs/r-reticulate3", required = TRUE)
-sc <- sparklyr::spark_connect( master     = Sys.getenv("master"),
-                               cluster_id = Sys.getenv("DATABRICKS_CLUSTER_ID"), 
-                               token      = Sys.getenv("DATABRICKS_TOKEN"),  
-                               method     = "databricks_connect",  
-                               envname    = "r-reticulate3")
 
 
 
