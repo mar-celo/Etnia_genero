@@ -68,6 +68,18 @@ library(showtext)
 library(htmltools)
 library(htmlwidgets)
 library(dataui)
+
+
+ggplotly_c <- function(gg_obj){
+  ptly_obj <- ggplotly(gg_obj)
+  ptly_obj$x$data <- lapply(ptly_obj$x$data, function(tr) {
+    tr$name <- 
+      tr$name %>%
+      gsub("^\\(|\\)$","",.) %>%
+      gsub(",1$", "", .)
+    tr})
+  ptly_obj
+  }
 ```
 
 ```{r data-load}
@@ -253,17 +265,18 @@ comissionados_negros_mes %>%
                  y = `Percentual de pessoas negras`,
                  col = `Cargo-Funcao`)) + 
   geom_line() + 
-  geom_point(size = 2.2) + 
+  geom_point(size = 2.2,show.legend = F) + 
   # geom_text(aes(label = ifelse(`Mes/ano` == dt_decreto,
   #                              "Data do decreto",
   #                              NA))) +
+  guides(color = guide_legend(override.aes = list(linetype = 0))) + 
   geom_vline(xintercept = dt_decreto,linetype = 2)+
   geom_hline(yintercept = 30,
              col = pal_primaria["principal"]) +
   # ylim(0,1.1*max(comissionados_negros_mes$p_negra)) + 
   labs(x = "",col = "",y = "") -> p_neg_mes
 
-bscols(ggplotly(p_neg_mes),
+bscols(ggplotly_c(p_neg_mes),
        widths = 12,
        device = "sm")
 ```
@@ -933,8 +946,8 @@ gf2 <- gf_base +
   labs(title = "Níveis 13 a 17")
 
 
-bscols(ggplotly(gf1),
-       ggplotly(gf2),
+bscols(ggplotly_c(gf1),
+       ggplotly_c(gf2),
        widths = c(6,6),
        device = "sm")
 ```
@@ -1021,8 +1034,8 @@ gf_ind <- Tab_ind5_mes  %>%
 
 
 # 
-# bscols(ggplotly(gf_medias),
-#        ggplotly(gf_ind),
+# bscols(ggplotly_c(gf_medias),
+#        ggplotly_c(gf_ind),
 #        widths = c(6,6),
 #        device = "sm") 
 ```
@@ -1138,13 +1151,13 @@ Tab_ind5_niveis %>%
        fill = "",
        itle = "Percentual de CCEs dentre os vínculos com função")  -> plot_cce_nivel_etna
 
-bscols(ggplotly(gf_ind),
+bscols(ggplotly_c(gf_ind),
        dt5,
        widths = c(6,6),
        device = "sm")
 
-bscols(ggplotly(gf_medias),
-       ggplotly(plot_cce_nivel_etna),
+bscols(ggplotly_c(gf_medias),
+       ggplotly_c(plot_cce_nivel_etna),
        widths = c(6,6),
        device = "sm")
 
