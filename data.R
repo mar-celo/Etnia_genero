@@ -330,6 +330,7 @@ tabela_vagos <- df |>
   ) |> 
   ungroup() |>  
   filter(!decreto_nivel %in% c("Nível 18")) %>%
+  collect() %>%
   setDT %>%
   .[,Total_ocupados := sum(total_negras),
     .(orgao_superior_cargos_e_funcoes,
@@ -389,14 +390,16 @@ tabela_vagos[,necessidade_vagas := nec_meta(Total_ocupados,total_negras)]
 
 # ajuste 3: cargos disponíveis sempre positivo
 tabela_vagos[,`:=`( cargos_disponiveis = total_dist - Total_ocupados)]
-tabela_vagos[,`:=`( indice_necessidade = 
-                      ifelse(necessidade_vagas == 0,
-                             0,
-                             ifelse(cargos_disponiveis == 0,
-                                    99,
-                                    necessidade_vagas/cargos_disponiveis)
-                             )
-                    )]
+tabela_vagos[,`:=`( 
+  # indice_necessidade =
+    # ifelse(necessidade_vagas == 0,
+    #        0,
+    #        ifelse(cargos_disponiveis == 0,
+    #               99,
+    #               necessidade_vagas/cargos_disponiveis)
+    #        ),
+  indice_suficiencia = cargos_disponiveis/necessidade_vagas
+  )]
 
 Tab_ind3 <- 
   select(tabela_vagos,
@@ -405,18 +408,18 @@ Tab_ind3 <-
          decreto_nivel,
          Total_ocupados,
          total_negras,
-         # total_dist,
+         total_dist,
          necessidade_vagas,
          cargos_disponiveis,
-         indice_necessidade
+         indice_suficiencia
   ) %>%
-  filter(!is.na(indice_necessidade),
+  filter(!is.na(indice_suficiencia),
          necessidade_vagas > 0,
          orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") %>%
-  setorder(-indice_necessidade)
+  setorder(indice_suficiencia)
 
 # Salvar base tratada
-saveRDS(tabela_vagos, "data/Tab_ind3.rds")
+saveRDS(Tab_ind3, "data/Tab_ind3.rds")
 
 
 ########################################################################.

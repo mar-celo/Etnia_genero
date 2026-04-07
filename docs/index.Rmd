@@ -82,13 +82,15 @@ comissionados_negros_mes <- readRDS("../data/Tab_inds_1_e_2.rds") %>%
 dados <- readRDS("../data/Tab.rds") |> 
   filter(Órgão != "Agencia Brasileira De Inteligencia") %>%
   setnames(c("Órgão","Órgão Superior"),
-           c("Orgao","Orgao Superior"))
+           c("Orgao","Orgao Superior")) %>%
+  select(-`Orgao Superior`) %>%
+  setDT 
 
 setnames(dados,
          gsub("N.v","Niv",names(dados))
          )
 
-sd_total <- SharedData$new(dados, group = "orgao_vinc")
+sd_total <- SharedData$new(dados, group = "orgao_vinc",key = ~Orgao)
 
 
 # Por órgão superior
@@ -104,39 +106,51 @@ sd_sup_total <- SharedData$new(dados_sup, group = "orgao_sup")
 
 # indicador 3
 Tab_ind3 <- readRDS("../data/Tab_ind3.rds")  %>%
-  .[,indice_necessidade :=  round(indice_necessidade,2)] %>%
-  arrange(-indice_necessidade) %>%
+  # left_join(
+  #   dados[,.(`Orgao`,id)],
+  #   by = c("orgao_vinculado_cargos_e_funcoes" = "Orgao")) %>% 
+  .[,indice_suficiencia :=  round(indice_suficiencia,2)] %>%
+  arrange(-indice_suficiencia) %>%
+  select(#id,
+         orgao_vinculado_cargos_e_funcoes,
+         decreto_nivel,
+         total_dist,
+         Total_ocupados,
+         total_negras,
+         necessidade_vagas,
+         cargos_disponiveis,
+         indice_suficiencia) %>%
   rename(
     # `Órgão Superior` = orgao_superior_cargos_e_funcoes,
     # `Órgão` = orgao_vinculado_cargos_e_funcoes,
     # `Cargo-Função` = decreto_nivel
-    `Orgao Superior` = orgao_superior_cargos_e_funcoes,
+    # `Orgao Superior` = orgao_superior_cargos_e_funcoes,
     `Orgao` = orgao_vinculado_cargos_e_funcoes,
     `Cargo-Funcao` = decreto_nivel,
+    `Cargos distribuídos` = total_dist,
     `Cargos ocupados` = Total_ocupados,
     `Cargos ocupados por pessoas negras` = total_negras,
     `Necessidade de vagas para a meta` = necessidade_vagas,
     `Cargos vagos` = cargos_disponiveis,
-    `Razao de vagas necessarias` = indice_necessidade
+    `Indice de suficiencia de vagas` = indice_suficiencia
   ) |> 
   filter(Orgao != "Agencia Brasileira De Inteligencia")
 
+## separando níveis
+Tab_ind3_1a12 <- Tab_ind3 %>%
+  filter(`Cargo-Funcao` == "Nível 1 a 12") %>%
+  select(-one_of("Cargo-Funcao"))
 
-# setando a mesma ordem dos dados
-Tab_ind3 <- 
-  left_join(
-    Tab_ind3,
-    dados %>%
-      select(`Orgao`) %>%
-      copy %>%
-      setDT %>%
-      .[,ordem := .I], #%>% View
-    by = c("Orgao")
-  ) %>%
-  setorder(ordem) %>% #View
-  select(-ordem)
+Tab_ind3_13a17 <- Tab_ind3 %>%
+  filter(`Cargo-Funcao` == "Nível 13 a 17") %>%
+  select(-one_of("Cargo-Funcao"))
 
-sd_ind3 <- SharedData$new(Tab_ind3, group = "orgao_vinc_necessidade")
+
+## tabelas reativas
+sd_ind3_1a12 <- SharedData$new(Tab_ind3_1a12, group = "orgao_vinc",
+                               key = ~Orgao)
+sd_ind3_13a17 <- SharedData$new(Tab_ind3_13a17, group = "orgao_vinc",
+                                key = ~Orgao)
 
 
 # indicador 4
@@ -148,13 +162,16 @@ Tab_ind4_mes <- readRDS( "../data/Tab_inds_4_mes.rds") %>%
     `Razao equidade, niveis 13 a 17` = ind4_13_a_17
   )
 
-Tab_ind4_orgaos <- readRDS( "../data/Tab_inds_4_orgaos.rds") %>% 
+Tab_ind4_orgaos <- readRDS( "../data/Tab_inds_4_orgaos.rds") %>%  
+  # left_join(
+  #   dados[,.(`Orgao`,id)],
+  #   by = c("orgao_vinculado_cargos_e_funcoes" = "Orgao")) %>% 
   .[,nome_cor_origem_etnica := iconv(nome_cor_origem_etnica,
                                      "Latin1",
                                      "ASCII//TRANSLIT")]   %>%
   filter(nome_cor_origem_etnica == "Negras")%>% 
-   select(
-    orgao_superior_cargos_e_funcoes,
+  select(
+    # id,
     orgao_vinculado_cargos_e_funcoes,
     -nome_cor_origem_etnica,
     qtde,
@@ -163,35 +180,27 @@ Tab_ind4_orgaos <- readRDS( "../data/Tab_inds_4_orgaos.rds") %>%
     ) %>%
   setorder(-ind4_13_a_17) %>% 
   rename(
-    `Orgao Superior` = orgao_superior_cargos_e_funcoes,
+    # `Orgao Superior` = orgao_superior_cargos_e_funcoes,
     `Orgao` = orgao_vinculado_cargos_e_funcoes,
     # `Cor-origem etnica` = nome_cor_origem_etnica,
-    `Percentual efetivos` = qtde,
+    `Percentual efetivos negros` = qtde,
     `Razao equidade, niveis 1 a 12` = ind4_1_a_12,
     `Razao equidade, niveis 13 a 17` = ind4_13_a_17
   )
   
 setnames(Tab_ind4_orgaos,
-         gsub("N.v","Niv",names(Tab_ind4_orgaos))
+         gsub("N.v","% de negros, Niv",names(Tab_ind4_orgaos))
          )
 
-# setando a mesma ordem dos dados
-Tab_ind4_orgaos <- 
-  left_join(
-    Tab_ind4_orgaos,
-    dados %>%
-      select(`Orgao`) %>%
-      copy %>%
-      setDT %>%
-      .[,ordem := .I], #%>% View
-    by = c("Orgao")
-  ) %>%
-  setorder(ordem) %>%
-  select(-ordem)
+Tab_ind4_orgaos <- setorder(Tab_ind4_orgaos,`Razao equidade, niveis 13 a 17`,
+                            na.last = T)
+
+
 
 # Tab_ind4_orgaos[, `Cor-origem etnica` := gsub("Ra.a","Raca",`Cor-origem etnica`)]
 
-sd_ind4 <- SharedData$new(Tab_ind4_orgaos, group = "orgao_vinc")
+sd_ind4 <- SharedData$new(Tab_ind4_orgaos, group = "orgao_vinc",
+                          key = ~Orgao)
 
 
 
@@ -204,10 +213,14 @@ Tab_ind5_mes <- readRDS( "../data/Tab_inds_5_mes.rds") %>%
     `Equidade remuneratoria` = ind5
   )
 
-Tab_ind5_orgaos <- readRDS( "../data/Tab_inds_5_orgaos.rds") %>%
-  setorder(-Negra)%>% 
+Tab_ind5_orgaos <- readRDS( "../data/Tab_inds_5_orgaos.rds")  %>%  
+  # left_join(
+  #   dados[,.(`Orgao`,id)],
+  #   by = c("orgao_vinculado_cargos_e_funcoes" = "Orgao")) %>%
+  setorder(-Negra,-orgao_superior_cargos_e_funcoes)%>% 
+  select(-orgao_superior_cargos_e_funcoes) %>%
   rename(
-    `Orgao Superior` = orgao_superior_cargos_e_funcoes,
+    # `Orgao Superior` = orgao_superior_cargos_e_funcoes,
     `Orgao` = orgao_vinculado_cargos_e_funcoes,
     `Equidade remuneratoria, pessoas Pretas` = Preta,
     `Equidade remuneratoria, pessoas Pardas` = Parda,
@@ -215,23 +228,12 @@ Tab_ind5_orgaos <- readRDS( "../data/Tab_inds_5_orgaos.rds") %>%
   ) 
   
 
-# setando a mesma ordem dos dados
-Tab_ind5_orgaos <- 
-  left_join(
-    Tab_ind5_orgaos,
-    dados %>%
-      select(`Orgao`) %>%
-      copy %>%
-      setDT %>%
-      .[,ordem := .I], #%>% View
-    by = c("Orgao")
-  ) %>%
-  setorder(ordem) %>%
-  select(-ordem)
+setorder(Tab_ind5_orgaos,`Equidade remuneratoria, pessoas Negras`)
 
 # Tab_ind4_orgaos[, `Cor-origem etnica` := gsub("Ra.a","Raca",`Cor-origem etnica`)]
 
-sd_ind5 <- SharedData$new(Tab_ind5_orgaos, group = "orgao_vinc")
+sd_ind5 <- SharedData$new(Tab_ind5_orgaos, group = "orgao_vinc",
+                          key = ~Orgao)
 
 
 Tab_ind5_niveis <- readRDS( "../data/Tab_inds_5_niveis.rds")
@@ -385,20 +387,27 @@ bscols(
 
 
 ```{r ind1_total_sup}
-pal_low <- col_numeric(
-  palette = c(pal_primaria["ponto"],"white"),
-  domain = c(0,30)
-)
+pal_low <- function(x,li,divisor){
+  col_numeric(
+    palette = c(pal_primaria["ponto"],"white"),
+    domain = c(li,divisor)
+  ) -> fcol
+  fcol(x)
+  }
 
-pal_high <- col_numeric(
-  palette = c("white",pal_primaria['principal']),
-  domain = c(30,100)
-  )
+pal_high <- function(x,ls,divisor){
+  col_numeric(
+    palette = c("white",pal_primaria["principal"]),
+    domain = c(divisor,ls)
+    )-> fcol
+  fcol(x)
+  }
 
-color_fun <- function(x){
-  ifelse(x <= 30,
-         pal_low(x),
-         pal_high(x))
+
+color_fun <- function(x,li,divisor,ls){
+  ifelse(x <= divisor,
+         pal_low(x,li,divisor),
+         pal_high(x,ls,divisor))
 }
 
 
@@ -424,14 +433,14 @@ dt2_sup <- sd_sup_total |>
                 ) %>%
   formatStyle(
     'Nivel 1 a 12',
-    background = styleEqual(dom_sup_1a12,color_fun(dom_sup_1a12)),
+    background = styleEqual(dom_sup_1a12,color_fun(dom_sup_1a12,0,30,100)),
     backgroundSize = '98% 88%',
     backgroundRepeat = 'no-repeat',
     backgroundPosition = 'center'
   ) %>%
   formatStyle(
     'Nivel 13 a 17',
-    background = styleEqual(dom_sup_13a17,color_fun(dom_sup_13a17)),
+    background = styleEqual(dom_sup_13a17,color_fun(dom_sup_13a17,0,30,100)),
     backgroundSize = '98% 88%',
     backgroundRepeat = 'no-repeat',
     backgroundPosition = 'center'
@@ -472,14 +481,14 @@ dt2 <- sd_total |>
                 ) %>%
   formatStyle(
     'Nivel 1 a 12',
-    background = styleEqual(dom_1a12,color_fun(dom_1a12)),
+    background = styleEqual(dom_1a12,color_fun(dom_1a12,0,30,100)),
     backgroundSize = '98% 88%',
     backgroundRepeat = 'no-repeat',
     backgroundPosition = 'center'
   ) %>%
   formatStyle(
     'Nivel 13 a 17',
-    background = styleEqual(dom_13a17,color_fun(dom_13a17)),
+    background = styleEqual(dom_13a17,color_fun(dom_13a17,0,30,100)),
     backgroundSize = '98% 88%',
     backgroundRepeat = 'no-repeat',
     backgroundPosition = 'center'
@@ -825,29 +834,64 @@ $(seletor).DataTable({
 
 ```{r prep_necessidade_vagas}
 
-# tbela necessidade de vagas
-lim <- Tab_ind3[is.finite(`Razao de vagas necessarias`) & 
-                  `Razao de vagas necessarias` < 99,
-                max(abs(`Razao de vagas necessarias` - 1),na.rm = T)]
+## limite geral observado no indicador
+lim <- Tab_ind3[is.finite(`Indice de suficiencia de vagas`) & 
+                  `Indice de suficiencia de vagas` < 99,
+                max(`Indice de suficiencia de vagas`,na.rm = T)]
 
-pal <- col_numeric(
-  palette = c(pal_primaria["principal"],"white",pal_primaria['ponto']),
-  domain = c(1 - lim, 1 + lim)
-)
+# domínio da tbela necessidade de vagas
+dom_nece_1a12 <- Tab_ind3_1a12[,`Indice de suficiencia de vagas`]
+dom_nece_13a17 <- Tab_ind3_13a17[,`Indice de suficiencia de vagas`]
 
-dom_nece <- Tab_ind3[,`Razao de vagas necessarias`]
 
-dt3 <- sd_ind3 |> 
+# DATATABLE necessidade de vagas, 1 a 12
+dt3_1a12 <- sd_ind3_1a12  |> 
   DT::datatable(#filter = "top",
                 #style = "bootstrap",
                 class = "compact",
                 width = "100%",
                 extensions = 'Buttons',
-                options = configuracao
+                options = configuracao,
+                caption = 
+                  tags$caption(
+                    style = 
+                    "caption-side: top;
+                    text-align: left;
+                    font-size: 24px;
+                    color: #0000AA;",
+                    "Niveis 1 a 12"
+                    )
                 ) %>%
   formatStyle(
-    'Razao de vagas necessarias',
-    background = styleEqual(dom_nece,pal(dom_nece)),
+    'Indice de suficiencia de vagas',
+    background = styleEqual(dom_nece_1a12,color_fun(dom_nece_1a12,0,1,lim)),
+    backgroundSize = '98% 88%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  )
+
+
+# DATATABLE necessidade de vagas, 1 a 12
+dt3_13a17 <- sd_ind3_13a17   |> 
+  DT::datatable(#filter = "top",
+                #style = "bootstrap",
+                class = "compact",
+                width = "100%",
+                extensions = 'Buttons',
+                options = configuracao,
+                caption = 
+                  tags$caption(
+                    style = 
+                    "caption-side: top;
+                    text-align: left;
+                    font-size: 24px;
+                    color: #0000AA;",
+                    "Niveis 13 a 17"
+                    )
+                ) %>%
+  formatStyle(
+    'Indice de suficiencia de vagas',
+    background = styleEqual(dom_nece_13a17,color_fun(dom_nece_13a17,0,1,lim)),
     backgroundSize = '98% 88%',
     backgroundRepeat = 'no-repeat',
     backgroundPosition = 'center'
@@ -856,8 +900,9 @@ dt3 <- sd_ind3 |>
 
 
 ```{r tab_necesside_vagas}
-bscols(dt3,
-       widths = 12,
+bscols(dt3_1a12,
+       dt3_13a17,
+       widths = c(6,6),
        device = "sm")
 ```
 
@@ -949,10 +994,9 @@ bscols(dt4,
 ```
 
 
-#  **Indicador 4: :razão entre remuneração média dos CCEs e FCEs negros em relação á observada entre os brancos**
+#  **Indicador 4 (em revisão): razão entre remuneração média dos CCEs e FCEs negros em relação à observada entre os brancos**
 
 
-## **Evolução mensal do Índice de equidade remuneratória dos cargos CCE e FCE **
 
 ```{r ind5_mes}
 
@@ -963,7 +1007,7 @@ gf_medias <- Tab_ind5_mes  %>%
   # geom_hline(yintercept = 1,linetype = 2) + 
   geom_line() + 
   geom_point(size = 2.2) + 
-  labs(x = "",col = "",y = "",title = "Remuneração média")
+  labs(x = "",col = "",y = "",title = "Remuneração média por mês")
   
 gf_ind <- Tab_ind5_mes  %>%
   # filter(`Cor-origem etnica` != "Branca") %>%
@@ -973,7 +1017,7 @@ gf_ind <- Tab_ind5_mes  %>%
   geom_hline(yintercept = 1,linetype = 2) +
   geom_line() + 
   geom_point(size = 2.2) + 
-  labs(x = "",col = "",y = "",title = "Índice de equidade remuneratória")
+  labs(x = "",col = "",y = "",title = "Índice de equidade remuneratória por mês")
 
 
 # 
@@ -985,8 +1029,6 @@ gf_ind <- Tab_ind5_mes  %>%
 
 
 
-
-## **Índice de equidade remuneratória dos cargos CCE e FCE por órgão **
 
 ```{r prep_ind5}
 setDT(Tab_ind5_orgaos)
@@ -1029,7 +1071,16 @@ dt5 <- sd_ind5 |>
                 class = "compact",
                 width = "100%",
                 extensions = 'Buttons',
-                options = configuracao
+                options = configuracao,
+                caption = 
+                  tags$caption(
+                    style = 
+                    "caption-side: top;
+                    text-align: left;
+                    font-size: 24px;
+                    color: #0000AA;",
+                    "Índice de equidade remuneratória por órgão vinculado"
+                    )
                 ) %>%
   formatStyle(
     'Equidade remuneratoria, pessoas Pardas',
@@ -1084,14 +1135,15 @@ Tab_ind5_niveis %>%
   scale_x_continuous(breaks = 1:17,labels = 1:17) +
   labs(x = "Nível CCE/FCE",
        y = "Percentual de CCEs",
-       fill = "")  -> plot_cce_nivel_etna
+       fill = "",
+       itle = "Percentual de CCEs dentre os vínculos com função")  -> plot_cce_nivel_etna
 
-bscols(ggplotly(gf_medias),
+bscols(ggplotly(gf_ind),
        dt5,
        widths = c(6,6),
        device = "sm")
 
-bscols(ggplotly(gf_ind),
+bscols(ggplotly(gf_medias),
        ggplotly(plot_cce_nivel_etna),
        widths = c(6,6),
        device = "sm")
