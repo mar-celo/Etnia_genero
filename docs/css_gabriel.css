@@ -22,7 +22,7 @@ body {
   color: var(--cinza-texto);
   background-color: #ffffff;
   line-height: var(--line-height-base);
-  max-width: 150rem; /* 900px */
+  max-width: 180rem; /* 900px */
   margin: 0 auto;
   padding: 3.125rem;   /* 50px */
   
@@ -142,4 +142,15 @@ ul, ol {
 li {
   margin-bottom: 0.5rem;
   text-align: left; 
+}
+
+/* --- 9. LAYOUT DA PÁGINA ---*/
+
+
+.main-container {
+
+  max-width: 80% !important;
+  margin-left: auto;
+  margin-right: auto;
+
 }

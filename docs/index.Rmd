@@ -2,16 +2,17 @@
 title: 'Painel de Monitoramento: Diversidade Étnico-Racial em Cargos Comissionados'
 output: 
   html_document: 
+    theme: default
     css: css_gabriel.css
     toc: true
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
 
-```{=html}
+<!-- ```{=html, eval = F,include = F} -->
 
 
 
-<style type="text/css"> 
+<style type="text/css">
 
 .main-container {
 
@@ -26,7 +27,7 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 strong {
     font-weight: 700;
     color: #0c326f;
-    
+
 }
 
 label {
@@ -42,8 +43,10 @@ element.style {
     color: #0c326f;
 }
 
-</style>
-```
+<!-- </style> -->
+<!-- ``` -->
+
+
 ```{r setup, include=FALSE}
 # knitr::opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FALSE)
 source("../lib/setup_rmd.R")
@@ -954,7 +957,7 @@ bscols(ggplotly_c(gf1),
 ```
 
 
-### **Índice de equidade de acesso a cargos por órgão **
+## **Índice de equidade de acesso a cargos por órgão **
 
 ```{r prep_ind4}
 # tbela necessidade de vagas
