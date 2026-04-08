@@ -2,6 +2,7 @@
 title: 'Painel de Monitoramento: Diversidade Étnico-Racial em Cargos Comissionados'
 output: 
   html_document: 
+    css: css_gabriel.css
     toc: true
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
@@ -434,9 +435,9 @@ dt2_sup <- sd_sup_total |>
                 width = "100%",
                 extensions = 'Buttons',
                 options = configuracao,
-                caption = 
+                caption = #"Por órgão superior"
                   tags$caption(
-                    style = 
+                    style =
                     "caption-side: top;
                     text-align: left;
                     font-size: 24px;

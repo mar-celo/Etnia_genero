@@ -22,7 +22,7 @@ body {
   color: var(--cinza-texto);
   background-color: #ffffff;
   line-height: var(--line-height-base);
-  max-width: 56.25rem; /* 900px */
+  max-width: 150rem; /* 900px */
   margin: 0 auto;
   padding: 3.125rem;   /* 50px */
   
