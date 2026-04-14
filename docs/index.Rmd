@@ -1,9 +1,10 @@
 ---
-title: 'Painel de Monitoramento: Diversidade Étnico-Racial em Cargos Comissionados'
+title: 'Painel de Monitoramento: Negros em Cargos Comissionados'
 output: 
   html_document: 
     theme: default
-    css: css_gabriel.css
+    css: styles-2.css
+    # css: css_gabriel.css
     toc: true
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
@@ -43,7 +44,7 @@ element.style {
     color: #0c326f;
 }
 
-<!-- </style> -->
+</style>
 <!-- ``` -->
 
 
@@ -257,10 +258,36 @@ Tab_ind5_niveis <- readRDS( "../data/Tab_inds_5_niveis.rds")
 ```
 
 
-# **Indicador 1: Participação de pessoas negras em cargos CCE/FCE (níveis 1 a 12 e níveis 13 a 17)**
+# **Política 2: cotas para cargos de liderança [(Decreto nº 11.443/2023)](https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/decreto/d11443.htm)**
 
 
-## **Evolução mensal do percentual de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados na Administração Pública Federal**
+Meta normativa: 30% de ocupação por pessoas negras nos cargos CCE e FCE:
+
+1. Nos níveis 1 a 12
+
+1. Nos Níveis 13 e superiores
+
+
+
+# **Indicador 1: Participação de negros em cargos CCE/FCE**
+
+
+* Definição: Percentual, dentre os ocupantes de cargos CCE/FCE, de pessoas que se autodeclaram pretas ou pardas.
+
+* Desagregações:
+
+  * Órgão superior
+  
+  * Órgão
+  
+  * Níveis (1 a 12 X 13 a 17)
+  
+  * Gênero
+
+Obs: a partir do indicador 1, serão apresentados *rankings* dos órgãos superiores e dos órgãos de vínculo, em ordem decrescente de participação de negros em cargos CCE/FCE, para cada grupo de níveis, destacando aqueles que ainda não atingiram o percentual mínimo do decreto. 
+
+
+## **Evolução mensal do percentual de negros em Cargos Comissionados na Administração Pública Federal**
 
 ```{r serie}
 dt_decreto <- as.yearmon("Mar 2023","%b %Y")
@@ -525,13 +552,14 @@ bscols(dt2_sup,
 
 
 
-### **Representatividade de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados por Órgão**
-
-As tabelas a seguir apresentam uma análise da distribuição de pessoas negras (pretas/pardas) em cargos comissionados de níveis 1 a 12 e de níveis 13 a 17, categorizados de acordo com o Órgão Superior ao qual estão subordinados. Os percentuais indicados fornecem uma visão clara da representatividade dessas pessoas em cargos de liderança e decisão dentro de cada órgão.
-
-Para uma compreensão mais detalhada da representatividade de pessoas negras (pretas/pardas) a nível de órgão, é possível visualizar a mesma classificação dos órgãos subordinados ao clicar nas setas $\blacktriangleright$ de cada Órgão Superior. Essa visualização proporciona uma análise mais granular, permitindo identificar discrepâncias ou tendências específicas dentro de cada órgão em relação à inclusão e diversidade nos cargos comissionados.
 
 ```{r Rectable_1a12, eval = F }
+
+# ### **Representatividade de Pessoas Negras (Pretas/Pardas) em Cargos Comissionados por Órgão**
+# 
+# As tabelas a seguir apresentam uma análise da distribuição de pessoas negras (pretas/pardas) em cargos comissionados de níveis 1 a 12 e de níveis 13 a 17, categorizados de acordo com o Órgão Superior ao qual estão subordinados. Os percentuais indicados fornecem uma visão clara da representatividade dessas pessoas em cargos de liderança e decisão dentro de cada órgão.
+# 
+# Para uma compreensão mais detalhada da representatividade de pessoas negras (pretas/pardas) a nível de órgão, é possível visualizar a mesma classificação dos órgãos subordinados ao clicar nas setas $\blacktriangleright$ de cada Órgão Superior. Essa visualização proporciona uma análise mais granular, permitindo identificar discrepâncias ou tendências específicas dentro de cada órgão em relação à inclusão e diversidade nos cargos comissionados.
 
 
 data <- readRDS("../data/data_1a12.rds")
@@ -846,7 +874,26 @@ $(seletor).DataTable({
 
 
 
-# **Indicador 2: Índice de suficiência de vagas para cumprimento da meta racial**
+# **Indicador 2: Índice de suficiência de vagas para cumprimento da meta de cotas**
+
+
+
+
+*  Definição: Relação entre o total de cargos CCE/FCE disponíveis no órgão e o número de vagas que deveriam ser ocupadas por pessoas negras para cumprimento da meta.
+
+O indicador 2 é calculado apenas paras os órgãos que não atingiram a meta estabelecida no Decreto. O indicador é baseado no número de nomeações adicionais que seriam necessárias para cumprir a meta do decreto, sem alterar a distribuição atual de cargos. Em outras palavras, sendo $N$ o total de negros em cargos comissionados e $T$ o total de vínculos, o total de cargos adicionais, $A$, necessários para cumprir a cota é definido de tal forma que $$100\times \frac{N + A}{T + A} \geq 30$$ Assim, temos $$A \geq \frac{0.3T - N}{1-0.3}$$
+
+Além das vagas necessárias, o indicador 2 leva em conta o total de cargos disponíveis  $D$, definido como a diferença entre o total de cargos distribuídos para o órgão e o total de ocupados.
+
+* Fórmula conceitual: $$Indicador 2 = \frac{D}{A}$$
+
+* Interpretação:
+
+    * $= 1$ → As vagas disponíveis são exatamente suficientes para atingir a meta
+    
+    * $< 1$ → As vagas disponíveis são insuficientes para atingir a meta
+    
+    * $> 1$ → As vagas disponíveis são mais do que suficientes para atingir a meta
 
 
 ```{r prep_necessidade_vagas}
@@ -925,6 +972,23 @@ bscols(dt3_1a12,
 
 
 # **Indicador 3: Índice de equidade de acesso a cargos FCE (raça e gênero) **
+
+* Hipótese analítica: na ausência de desigualdade racial no acesso a cargos de liderança, a proporção de negros em cargos FCE deveria ser equivalente à sua proporção entre os servidores efetivos ativos.
+
+* Definição: Razão entre o percentual de pessoas negras em cargos de liderança (FCE) e o percentual de pessoas negras no conjunto de servidores efetivos ativos.
+
+* Fórmula conceitual: 
+
+$$\frac{\text{% negros em cargos FCE}}{\text{% negros no quadro efetivo ativo}}$$
+
+Interpretação:
+
+* $= 1$ → Equidade na ocupação dos cargos
+
+* $< 1$ → Sub-representação de pessoas negras na liderança
+
+* $> 1$ → Sobre-representação
+
 
 ## **Evolução anual do Índice de equidade de acesso a cargos FCE**
 
@@ -1011,8 +1075,18 @@ bscols(dt4,
 ```
 
 
-#  **Indicador 4 (em revisão): razão entre remuneração média dos CCEs e FCEs negros em relação à observada entre os brancos**
+#  **Indicador 4 (em revisão): Índice de equidade remuneratória por raça/cor**
 
+* Definição: Razão entre a remuneração média de negros e a remuneração média de brancos nos cargos de liderança (CCE/FCE).
+
+* Fórmula conceitual: $$\frac{\text{Remuneração média (negros) }}{\text{Remuneração média (brancos)}}$$
+Interpretação:
+
+* $=1$ → Equidade remuneratória;
+
+* $< 1$ → Pessoas negras recebem, em média, menos que pessoas brancas
+
+* $> 1$ → Pessoas negras recebem, em média, mais que pessoas brancas
 
 
 ```{r ind5_mes}
@@ -1161,7 +1235,13 @@ bscols(ggplotly_c(gf_ind),
        device = "sm")
 
 bscols(ggplotly_c(gf_medias),
-       ggplotly_c(plot_cce_nivel_etna),
+       ggplotly_c(plot_cce_nivel_etna) %>%
+         plotly::layout(legend = list(x = 0.50,
+                                      y = 0,
+                                      xanchor = "center",
+                                      yanchor = "upper",
+                                      orientation = "h")
+                        ),
        widths = c(6,6),
        device = "sm")
 
