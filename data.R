@@ -85,12 +85,14 @@ ano_corrente <- year(data_mes_anterior)
 
 
 # conectando databricks
-use_virtualenv("C:/venvs/r-reticulate3", required = TRUE)
-sc <- sparklyr::spark_connect( master     = Sys.getenv("master"),
-                               cluster_id = Sys.getenv("DATABRICKS_CLUSTER_ID"), 
-                               token      = Sys.getenv("DATABRICKS_TOKEN"),  
-                               method     = "databricks_connect",  
-                               envname    = "r-reticulate3")
+use_virtualenv(Sys.getenv("venv_path"), required = TRUE)
+sc <- spark_connect(
+  master     = Sys.getenv("master"),
+  method     = Sys.getenv("method"),
+  cluster_id = Sys.getenv("cluster_id"),
+  token      = Sys.getenv("token_databricks"),
+  envname    = Sys.getenv("venv_path")
+)
 
 
 df <- sparklyr::spark_read_csv(sc,
