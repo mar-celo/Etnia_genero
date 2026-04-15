@@ -258,6 +258,34 @@ Tab_ind5_niveis <- readRDS( "../data/Tab_inds_5_niveis.rds")
 ```
 
 
+<!-- # **Política 1: Cotas para ingresso em concurso público** -->
+
+<!-- Objetivo: Monitorar a efetividade das políticas de cotas no ingresso em cargo efetivo de grupos historicamente sub-representados no serviço público. -->
+
+<!-- Elementos de monitoramento: -->
+
+<!-- * Marco legal aplicável -->
+
+<!-- * Base de dados disponível (SIAPE e estudos complementares) -->
+
+<!-- * Marcadores de identificação racial e de inclusão -->
+
+<!-- * Evolução da ocupação de cargos efetivos: -->
+
+<!--   * Pessoas negras (antes e após o decreto) -->
+
+<!--   * Pessoas indígenas (antes e após o decreto) -->
+
+<!--   * Pessoas com deficiência (PCD) (antes e após o decreto) -->
+
+<!-- * Dados de ingresso por cotas: -->
+
+<!--   * Marcador SIAPE (mais recente) -->
+
+<!--   * Estudo ENAP -->
+
+
+
 # **Política 2: cotas para cargos de liderança [(Decreto nº 11.443/2023)](https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/decreto/d11443.htm)**
 
 
@@ -881,7 +909,7 @@ $(seletor).DataTable({
 
 *  Definição: Relação entre o total de cargos CCE/FCE disponíveis no órgão e o número de vagas que deveriam ser ocupadas por pessoas negras para cumprimento da meta.
 
-O indicador 2 é calculado apenas paras os órgãos que não atingiram a meta estabelecida no Decreto. O indicador é baseado no número de nomeações adicionais que seriam necessárias para cumprir a meta do decreto, sem alterar a distribuição atual de cargos. Em outras palavras, sendo $N$ o total de negros em cargos comissionados e $T$ o total de vínculos, o total de cargos adicionais, $A$, necessários para cumprir a cota é definido de tal forma que $$100\times \frac{N + A}{T + A} \geq 30$$ Assim, temos $$A \geq \frac{0.3T - N}{1-0.3}$$
+O indicador 2 é calculado apenas paras os órgãos que não atingiram a meta estabelecida no Decreto. O indicador é baseado no número de nomeações adicionais que seriam necessárias para cumprir a meta do decreto, sem alterar a distribuição atual de cargos. Em outras palavras, considerando $T$ a quantidade de vínculos em cargos comissionados  e $N$ o total destes que se autodeclaram negros, o total de cargos adicionais, $A$, necessários para cumprir a cota é definido de tal forma que $$100\times \frac{N + A}{T + A} \geq 30$$ Assim, temos $$A \geq \frac{0.3T - N}{1-0.3}$$
 
 Além das vagas necessárias, o indicador 2 leva em conta o total de cargos disponíveis  $D$, definido como a diferença entre o total de cargos distribuídos para o órgão e o total de ocupados.
 
