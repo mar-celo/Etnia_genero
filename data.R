@@ -90,7 +90,7 @@ sc <- spark_connect(
   master     = Sys.getenv("master"),
   method     = Sys.getenv("method"),
   cluster_id = Sys.getenv("cluster_id"),
-  token      = Sys.getenv("token_databricks"),
+  token      = Sys.getenv("token_databricks3"),
   envname    = Sys.getenv("venv_path")
 )
 
@@ -425,7 +425,7 @@ saveRDS(Tab_ind3, "data/Tab_ind3.rds")
 
 
 ########################################################################.
-### Indicador 4: necessidade de cargos vagos ----
+### Indicador 4: equidade de acesso a cargos FCE ----
 ########################################################################.
 
 ####
