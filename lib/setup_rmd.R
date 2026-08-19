@@ -162,3 +162,15 @@ quebra_texto2 <- function(texto, largura_max = 40, aplicar_se_maior = 40) {
   
   return(paste(strwrap(texto, width = largura_max), collapse = "\n"))
 }
+
+
+# função para deteção de outliers
+outlier_kd <- function(x){
+  q1 <- quantile(x,0.25,na.rm = T)
+  q3 <- quantile(x,0.75,na.rm = T)
+  difq <- q3-q1
+  li <- q1 - 5*difq
+  lf <- q3 + 5*difq
+  x < li | x > lf
+}
+

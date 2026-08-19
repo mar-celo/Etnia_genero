@@ -122,13 +122,11 @@ setnames(dados_sup,
 sd_sup_total <- SharedData$new(dados_sup, group = "orgao_sup")
 
 # indicador 3
-Tab_ind3 <- readRDS("../data/Tab_ind3.rds")  %>%
+Tab_ind3_m <- readRDS("../data/Tab_ind3.rds")  %>%
   # left_join(
   #   dados[,.(`Orgao`,id)],
-  #   by = c("orgao_vinculado_cargos_e_funcoes" = "Orgao")) %>% 
-  .[,indice_suficiencia :=  round(indice_suficiencia,2)] %>%
-  arrange(-indice_suficiencia) %>%
-  select(#id,
+  #   by = c("orgao_vinculado_cargos_e_funcoes" = "Orgao"))
+  select(mes,
          orgao_vinculado_cargos_e_funcoes,
          decreto_nivel,
          total_dist,
@@ -136,7 +134,33 @@ Tab_ind3 <- readRDS("../data/Tab_ind3.rds")  %>%
          total_negras,
          necessidade_vagas,
          cargos_disponiveis,
-         indice_suficiencia) %>%
+         indice_suficiencia) %>% 
+  # detectando outliers
+  .[,outlier_suficiencia := outlier_kd(indice_suficiencia),.(mes,decreto_nivel)]
+
+# calculando agregados mensais
+Tab_ind3_m_ag <- 
+  list(
+    Tab_ind3_m[!(outlier_suficiencia),
+               .(decreto_nivel = "Total",
+                 indice_suficiencia = sum(cargos_disponiveis)/sum(necessidade_vagas)
+                 ),
+               .(mes)],
+    Tab_ind3_m[!(outlier_suficiencia),
+               .(indice_suficiencia = sum(cargos_disponiveis)/sum(necessidade_vagas)
+                 ),
+               .(mes,decreto_nivel)]
+   ) %>% 
+  rbindlist(fill = T) %>% 
+  setorder(mes,decreto_nivel) #%>% 
+  # dcast(mes ~ decreto_nivel,value.var = "indice_suficiencia") %>% View
+
+# dados para tabela no último mês disponível
+max_mes_ind <- max(Tab_ind3_m$mes)
+Tab_ind3 <- 
+  Tab_ind3_m %>%  
+  arrange(mes,-indice_suficiencia) %>%
+  .[,indice_suficiencia :=  round(indice_suficiencia,2)] %>%
   rename(
     # `Órgão Superior` = orgao_superior_cargos_e_funcoes,
     # `Órgão` = orgao_vinculado_cargos_e_funcoes,
@@ -151,7 +175,8 @@ Tab_ind3 <- readRDS("../data/Tab_ind3.rds")  %>%
     `Cargos vagos` = cargos_disponiveis,
     `Indice de suficiencia de vagas` = indice_suficiencia
   ) |> 
-  filter(Orgao != "Agencia Brasileira De Inteligencia")
+  filter(Orgao != "Agencia Brasileira De Inteligencia",
+         mes == max_mes_ind)
 
 ## separando níveis
 Tab_ind3_1a12 <- Tab_ind3 %>%
@@ -909,7 +934,7 @@ $(seletor).DataTable({
 
 *  Definição: Relação entre o total de cargos CCE/FCE disponíveis no órgão e o número de vagas que deveriam ser ocupadas por pessoas negras para cumprimento da meta.
 
-O indicador 2 é calculado apenas paras os órgãos que não atingiram a meta estabelecida no Decreto. O indicador é baseado no número de nomeações adicionais que seriam necessárias para cumprir a meta do decreto, sem alterar a distribuição atual de cargos. Em outras palavras, considerando $T$ a quantidade de vínculos em cargos comissionados  e $N$ o total destes que se autodeclaram negros, o total de cargos adicionais, $A$, necessários para cumprir a cota é definido de tal forma que $$100\times \frac{N + A}{T + A} \geq 30$$ Assim, temos $$A \geq \frac{0.3T - N}{1-0.3}$$
+O indicador 2 é calculado **apenas paras os órgãos que não atingiram a meta estabelecida no Decreto**. O indicador é baseado no número de nomeações adicionais que seriam necessárias para cumprir a meta do decreto, sem alterar a distribuição atual de cargos. Em outras palavras, considerando $T$ a quantidade de vínculos em cargos comissionados  e $N$ o total destes que se autodeclaram negros, o total de cargos adicionais, $A$, necessários para cumprir a cota é definido de tal forma que $$100\times \frac{N + A}{T + A} \geq 30$$ Assim, temos $$A \geq \frac{0.3T - N}{1-0.3}$$
 
 Além das vagas necessárias, o indicador 2 leva em conta o total de cargos disponíveis  $D$, definido como a diferença entre o total de cargos distribuídos para o órgão e o total de ocupados.
 
@@ -922,6 +947,44 @@ Além das vagas necessárias, o indicador 2 leva em conta o total de cargos disp
     * $< 1$ → As vagas disponíveis são insuficientes para atingir a meta
     
     * $> 1$ → As vagas disponíveis são mais do que suficientes para atingir a meta
+    
+    
+Para uma visão agregada destes órgãos, foi calculada uma versão agregada do índice. O índice agrego é a razão entre a soma de cargos disponíveis, $D$, e a soma de cargos necessários, $A$. Duas observações merecem destaque.
+
+1. Órgãos com valores muito discrepantes no índice individual são removidos, pois exercem forte impacto no indicador agregado
+
+1. Cargos disponíveis em um órgão **não podem ser redistribuídos para outro órgão**. O índice agregado não leva esta limitação em consideração.
+
+
+A figura a seguir apresenta a evolução mensal do índice agregado.
+
+```{r necessidade_vagas_mensal}
+Tab_ind3_m_ag %>% 
+  filter(mes > 202206) %>% 
+  mutate(`Mês` = mes %>%  as.character %>% as.yearmon(format = "%Y%m"),
+         `Suficiência` = round(indice_suficiencia,2)) %>% 
+  ggplot_cat(
+    aes(x = `Mês`,
+        y = `Suficiência`,
+        col = decreto_nivel)
+  ) +
+  geom_line()+
+  geom_point(size = 2.2,show.legend = F) + 
+  # guides(color = guide_legend(override.aes = list(linetype = 0))) + 
+  geom_vline(xintercept = dt_decreto,linetype = 2)+
+  geom_hline(yintercept = 1,
+             col = "black") +
+  # ylim(0,1.1*max(comissionados_negros_mes$p_negra)) + 
+  labs(x = "",col = "",y = "")-> p_sufic_mes
+
+bscols(ggplotly_c(p_sufic_mes),
+       widths = 12,
+       device = "sm")
+```
+
+
+
+A tabela a seguir apresenta o índice de suficiência por órgão
 
 
 ```{r prep_necessidade_vagas}
@@ -997,6 +1060,8 @@ bscols(dt3_1a12,
        widths = c(6,6),
        device = "sm")
 ```
+
+
 
 
 # **Indicador 3: Índice de equidade de acesso a cargos FCE (raça e gênero) **
