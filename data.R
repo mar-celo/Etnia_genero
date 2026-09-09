@@ -186,7 +186,7 @@ tabela <- df |>
   rename(
     `Órgão Superior` = orgao_superior_cargos_e_funcoes,
     `Órgão` = orgao_vinculado_cargos_e_funcoes
-    )  %>% #View
+    )  %>% View
   arrange(`Nível 13 a 17`,`Nível 1 a 12`)
   # rowwise()  %>% 
   # mutate(
@@ -426,9 +426,7 @@ Tab_ind3 <-
          cargos_disponiveis,
          indice_suficiencia
   ) %>% #View
-  filter(!is.na(indice_suficiencia),
-         necessidade_vagas > 0,
-         orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") %>%
+  filter(orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") %>%
   setorder(indice_suficiencia)
 
 # Salvar base tratada

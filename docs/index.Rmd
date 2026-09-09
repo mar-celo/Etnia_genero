@@ -136,18 +136,23 @@ Tab_ind3_m <- readRDS("../data/Tab_ind3.rds")  %>%
          cargos_disponiveis,
          indice_suficiencia) %>% 
   # detectando outliers
-  .[,outlier_suficiencia := outlier_kd(indice_suficiencia),.(mes,decreto_nivel)]
+  .[,`:=`(outlier_suficiencia = outlier_kd(indice_suficiencia),
+          cumpre_meta = necessidade_vagas %in% c(0,NA)),
+    .(mes,decreto_nivel)] %>% 
+  .[,nao_cumpre_pode := !cumpre_meta & necessidade_vagas <= cargos_disponiveis]
 
 # calculando agregados mensais
 Tab_ind3_m_ag <- 
   list(
-    Tab_ind3_m[!(outlier_suficiencia),
+    Tab_ind3_m[,
                .(decreto_nivel = "Total",
-                 indice_suficiencia = sum(cargos_disponiveis)/sum(necessidade_vagas)
+                 orgaos_cumprem = 100*mean(cumpre_meta,na.rm = T),
+                 orgaos_suficiencia = 100*mean(nao_cumpre_pode,na.rm = T)
                  ),
                .(mes)],
-    Tab_ind3_m[!(outlier_suficiencia),
-               .(indice_suficiencia = sum(cargos_disponiveis)/sum(necessidade_vagas)
+    Tab_ind3_m[,
+               .(orgaos_cumprem = 100*mean(cumpre_meta,na.rm = T),
+                 orgaos_suficiencia = 100*mean(nao_cumpre_pode,na.rm = T)
                  ),
                .(mes,decreto_nivel)]
    ) %>% 
@@ -155,12 +160,19 @@ Tab_ind3_m_ag <-
   setorder(mes,decreto_nivel) #%>% 
   # dcast(mes ~ decreto_nivel,value.var = "indice_suficiencia") %>% View
 
+orgaos_sem_dist <- Tab_ind3_m[is.na(cargos_disponiveis),unique(orgao_vinculado_cargos_e_funcoes)]
+
 # dados para tabela no último mês disponível
 max_mes_ind <- max(Tab_ind3_m$mes)
 Tab_ind3 <- 
-  Tab_ind3_m %>%  
+  Tab_ind3_m %>% 
+  filter(!is.na(indice_suficiencia),
+         necessidade_vagas > 0)%>%  
   arrange(mes,-indice_suficiencia) %>%
   .[,indice_suficiencia :=  round(indice_suficiencia,2)] %>%
+  select(-outlier_suficiencia,
+         -cumpre_meta,
+         -nao_cumpre_pode) %>% 
   rename(
     # `Órgão Superior` = orgao_superior_cargos_e_funcoes,
     # `Órgão` = orgao_vinculado_cargos_e_funcoes,
@@ -322,7 +334,7 @@ Meta normativa: 30% de ocupação por pessoas negras nos cargos CCE e FCE:
 
 
 
-# **Indicador 1: Participação de negros em cargos CCE/FCE**
+# **Participação de negros em cargos CCE/FCE**
 
 
 * Definição: Percentual, dentre os ocupantes de cargos CCE/FCE, de pessoas que se autodeclaram pretas ou pardas.
@@ -924,45 +936,71 @@ $(seletor).DataTable({
 })
 ```
 
+# **Órgãos que cumprem do decreto n° 11.443/2023**
+
+
+*  Definição: Mede o percentual de órgãos que atingiram a meta de ocupação de 30% de negros em cargos CCE/FCE, conforme estabelecido no Decreto nº 11.443/2023.
+
+
+* Forma de cálculo: 
+
+$$\frac{\text{Quantidade de órgãos que cumpriram a meta e que têm cargos vagos suficientes}}{\text{Quantidade total de órgãos do SIAPE}} x 100$$
 
 
 
-# **Indicador 2: Índice de suficiência de vagas para cumprimento da meta de cotas**
+A figura a seguir apresenta a evolução mensal do percentual de órgãos que não cumprem a meta, porém têm capacidade de cumprir.
+
+```{r cumprem_vagas_mensal}
+Tab_ind3_m_ag %>% 
+  # filter(mes > 202206) %>% 
+  mutate(`Mês` = mes %>%  as.character %>% as.yearmon(format = "%Y%m"),
+         `%Órgãos que cumprem` = round(orgaos_cumprem,2)) %>% 
+  ggplot_cat(
+    aes(x = `Mês`,
+        y = `%Órgãos que cumprem`,
+        col = decreto_nivel)
+  ) +
+  geom_line()+
+  geom_point(size = 2.2,show.legend = F) + 
+  # guides(color = guide_legend(override.aes = list(linetype = 0))) + 
+  geom_vline(xintercept = dt_decreto,linetype = 2)+
+  geom_hline(yintercept = 1,
+             col = "black") +
+  # ylim(0,1.1*max(comissionados_negros_mes$p_negra)) + 
+  labs(x = "",col = "",y = "")-> p_cumprem_mes
+
+bscols(ggplotly_c(p_cumprem_mes),
+       widths = 12,
+       device = "sm")
+```
 
 
 
-
-*  Definição: Relação entre o total de cargos CCE/FCE disponíveis no órgão e o número de vagas que deveriam ser ocupadas por pessoas negras para cumprimento da meta.
-
-O indicador 2 é calculado **apenas paras os órgãos que não atingiram a meta estabelecida no Decreto**. O indicador é baseado no número de nomeações adicionais que seriam necessárias para cumprir a meta do decreto, sem alterar a distribuição atual de cargos. Em outras palavras, considerando $T$ a quantidade de vínculos em cargos comissionados  e $N$ o total destes que se autodeclaram negros, o total de cargos adicionais, $A$, necessários para cumprir a cota é definido de tal forma que $$100\times \frac{N + A}{T + A} \geq 30$$ Assim, temos $$A \geq \frac{0.3T - N}{1-0.3}$$
-
-Além das vagas necessárias, o indicador 2 leva em conta o total de cargos disponíveis  $D$, definido como a diferença entre o total de cargos distribuídos para o órgão e o total de ocupados.
-
-* Fórmula conceitual: $$Indicador 2 = \frac{D}{A}$$
-
-* Interpretação:
-
-    * $= 1$ → As vagas disponíveis são exatamente suficientes para atingir a meta
-    
-    * $< 1$ → As vagas disponíveis são insuficientes para atingir a meta
-    
-    * $> 1$ → As vagas disponíveis são mais do que suficientes para atingir a meta
-    
-    
-Para uma visão agregada destes órgãos, foi calculada uma versão agregada do índice. O índice agrego é a razão entre a soma de cargos disponíveis, $D$, e a soma de cargos necessários, $A$. Duas observações merecem destaque.
-
-1. Órgãos com valores muito discrepantes no índice individual são removidos, pois exercem forte impacto no indicador agregado
-
-1. Cargos disponíveis em um órgão **não podem ser redistribuídos para outro órgão**. O índice agregado não leva esta limitação em consideração.
+# **Órgãos com suficiência de vagas para cumprimento do decreto n° 11.443/2023**
 
 
-A figura a seguir apresenta a evolução mensal do índice agregado.
+*  Definição: Mede o percentual de órgãos que não atingiram a meta de ocupação de 30% de negros em cargos CCE/FCE, conforme estabelecido no Decreto nº 11.443/2023, e que possuem cargos vagos suficientes para o alcance desta meta mediante novas nomeações de pessoas negras.
+
+
+* Forma de cálculo: 
+
+$$\frac{\text{Quantidade de órgãos que não cumpriram a meta e que têm cargos vagos suficientes}}{\text{Quantidade total de órgãos do SIAPE}} x 100$$
+
+* Limitações: a distribuição de cargos é obtida do [portal gov360](https://gov360.gestao.gov.br/). Os nomes dos órgãos não são precisamente iguais aos registrados no SIAPE. A associação entre as duas fontes foi realizada por medidas de diferença de *strings* usando distância cosseno. Alguns órgãos não obtiveram êxito nessa associação automática: 
+
+```{r list_sem,results = 'asis'}
+paste0("\n\t* ",orgaos_sem_dist,sep = ";\n") %>% cat()
+
+```
+
+
+A figura a seguir apresenta a evolução mensal do percentual de órgãos que não cumprem a meta, porém têm capacidade de cumprir.
 
 ```{r necessidade_vagas_mensal}
 Tab_ind3_m_ag %>% 
-  filter(mes > 202206) %>% 
+  # filter(mes > 202206) %>% 
   mutate(`Mês` = mes %>%  as.character %>% as.yearmon(format = "%Y%m"),
-         `Suficiência` = round(indice_suficiencia,2)) %>% 
+         `Suficiência` = round(orgaos_suficiencia,2)) %>% 
   ggplot_cat(
     aes(x = `Mês`,
         y = `Suficiência`,
@@ -982,7 +1020,19 @@ bscols(ggplotly_c(p_sufic_mes),
        device = "sm")
 ```
 
+Uma visão alternativa, por órgão, é calculada **apenas paras os órgãos que não atingiram a meta estabelecida no Decreto**. O indicador é baseado no número de nomeações adicionais que seriam necessárias para cumprir a meta do decreto, sem alterar a distribuição atual de cargos. Em outras palavras, considerando $T$ a quantidade de vínculos em cargos comissionados  e $N$ o total destes que se autodeclaram negros, o total de cargos adicionais, $A$, necessários para cumprir a cota é definido de tal forma que $$100\times \frac{N + A}{T + A} \geq 30$$ Assim, temos $$A \geq \frac{0.3T - N}{1-0.3}$$
 
+Além das vagas necessárias, o indicador 2 leva em conta o total de cargos disponíveis  $D$, definido como a diferença entre o total de cargos distribuídos para o órgão e o total de ocupados.
+
+* Fórmula conceitual: $$Indicador 2 = \frac{D}{A}$$
+
+* Interpretação:
+
+    * $= 1$ → As vagas disponíveis são exatamente suficientes para atingir a meta
+    
+    * $< 1$ → As vagas disponíveis são insuficientes para atingir a meta
+    
+    * $> 1$ → As vagas disponíveis são mais do que suficientes para atingir a meta
 
 A tabela a seguir apresenta o índice de suficiência por órgão
 
@@ -1064,7 +1114,7 @@ bscols(dt3_1a12,
 
 
 
-# **Indicador 3: Índice de equidade de acesso a cargos FCE (raça e gênero) **
+# **Índice de equidade de acesso a cargos FCE (raça e gênero) **
 
 * Hipótese analítica: na ausência de desigualdade racial no acesso a cargos de liderança, a proporção de negros em cargos FCE deveria ser equivalente à sua proporção entre os servidores efetivos ativos.
 
@@ -1168,7 +1218,7 @@ bscols(dt4,
 ```
 
 
-#  **Indicador 4 (em revisão): Índice de equidade remuneratória por raça/cor**
+#  **(em revisão): Índice de equidade remuneratória por raça/cor**
 
 * Definição: Razão entre a remuneração média de negros e a remuneração média de brancos nos cargos de liderança (CCE/FCE).
 
