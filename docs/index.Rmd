@@ -7,6 +7,8 @@ output:
     # css: css_gabriel.css
     toc: true
 date: "`r format(Sys.time(), '%d %B, %Y')`"
+editor_options: 
+  chunk_output_type: console
 ---
 
 <!-- ```{=html, eval = F,include = F} -->
@@ -90,10 +92,26 @@ ggplotly_c <- function(gg_obj){
 ```{r data-load}
 
 # Total: evolução no tempo
-comissionados_negros_mes <- readRDS("../data/Tab_inds_1_e_2.rds") %>%
+comissionados_negros_mes <- readRDS("../data/Tab_inds_1_e_2.rds") 
+
+
+# Total geral
+list(comissionados_negros_mes[,.(decreto_nivel = "Total",
+                                 total = sum(total),
+                                 total_geral = sum(100*total/(p_negras))
+                                 ),
+                              .(anomes,mes_ano_cargos,etnia)] %>% 
+       .[,p_negras := 100*total/total_geral] %>% 
+       select(-total_geral),
+     
+     comissionados_negros_mes
+     
+     )%>%
+  rbindlist(fill = T) %>% 
   rename(`Mes/ano` = anomes,
          `Cargo-Funcao` = decreto_nivel) %>%
-  .[,`Percentual de pessoas negras` :=  round(p_negras,1)]
+  .[,`Percentual de pessoas negras` :=  round(p_negras,1)] -> comissionados_negros_mes
+
 
 # Por órgão vinculado
 dados <- readRDS("../data/Tab.rds") |> 
