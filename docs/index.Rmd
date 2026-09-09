@@ -139,23 +139,48 @@ Tab_ind3_m <- readRDS("../data/Tab_ind3.rds")  %>%
   .[,`:=`(outlier_suficiencia = outlier_kd(indice_suficiencia),
           cumpre_meta = necessidade_vagas %in% c(0,NA)),
     .(mes,decreto_nivel)] %>% 
+  .[,nao_cumpre_pode := !cumpre_meta & necessidade_vagas <= cargos_disponiveis] %>% 
+  .[,n_orgaos := n_distinct(orgao_vinculado_cargos_e_funcoes),.(mes)]
+
+
+# indicador 3, geral (sem nível)
+Tab_ind3_m_all <- readRDS("../data/Tab_ind3_all.rds")  %>%
+  # left_join(
+  #   dados[,.(`Orgao`,id)],
+  #   by = c("orgao_vinculado_cargos_e_funcoes" = "Orgao"))
+  select(mes,
+         orgao_vinculado_cargos_e_funcoes,
+         total_dist,
+         Total_ocupados,
+         total_negras,
+         necessidade_vagas,
+         cargos_disponiveis) %>% 
+  # detectando outliers
+  .[,`:=`(cumpre_meta = necessidade_vagas %in% c(0,NA)),
+    .(mes)] %>% 
   .[,nao_cumpre_pode := !cumpre_meta & necessidade_vagas <= cargos_disponiveis]
 
 # calculando agregados mensais
 Tab_ind3_m_ag <- 
   list(
+    Tab_ind3_m_all[,
+                   .(decreto_nivel = "Total",
+                     n_orgaos = n_distinct(orgao_vinculado_cargos_e_funcoes),
+                     orgaos_cumprem = sum(cumpre_meta,na.rm = T),
+                     orgaos_suficiencia = sum(nao_cumpre_pode,na.rm = T)
+                     ),
+                   .(mes)] %>% 
+      .[,`:=`(orgaos_cumprem = 100*orgaos_cumprem/n_orgaos,
+              orgaos_suficiencia = 100*orgaos_suficiencia/n_orgaos)],
+    
     Tab_ind3_m[,
-               .(decreto_nivel = "Total",
-                 orgaos_cumprem = 100*mean(cumpre_meta,na.rm = T),
-                 orgaos_suficiencia = 100*mean(nao_cumpre_pode,na.rm = T)
+               .(orgaos_cumprem = sum(cumpre_meta,na.rm = T),
+                 orgaos_suficiencia = sum(nao_cumpre_pode,na.rm = T)
                  ),
-               .(mes)],
-    Tab_ind3_m[,
-               .(orgaos_cumprem = 100*mean(cumpre_meta,na.rm = T),
-                 orgaos_suficiencia = 100*mean(nao_cumpre_pode,na.rm = T)
-                 ),
-               .(mes,decreto_nivel)]
-   ) %>% 
+               .(mes,n_orgaos,decreto_nivel)] %>% 
+      .[,`:=`(orgaos_cumprem = 100*orgaos_cumprem/n_orgaos,
+              orgaos_suficiencia = 100*orgaos_suficiencia/n_orgaos)]
+    ) %>% 
   rbindlist(fill = T) %>% 
   setorder(mes,decreto_nivel) #%>% 
   # dcast(mes ~ decreto_nivel,value.var = "indice_suficiencia") %>% View
@@ -944,7 +969,7 @@ $(seletor).DataTable({
 
 * Forma de cálculo: 
 
-$$\frac{\text{Quantidade de órgãos que cumpriram a meta e que têm cargos vagos suficientes}}{\text{Quantidade total de órgãos do SIAPE}} x 100$$
+$$\frac{\text{Quantidade de órgãos com funções CCE/FCE e que cumpriram a meta}}{\text{Quantidade de órgãos do SIAPE com funções CCE/FCE}} \times 100$$
 
 
 
@@ -984,7 +1009,7 @@ bscols(ggplotly_c(p_cumprem_mes),
 
 * Forma de cálculo: 
 
-$$\frac{\text{Quantidade de órgãos que não cumpriram a meta e que têm cargos vagos suficientes}}{\text{Quantidade total de órgãos do SIAPE}} x 100$$
+$$\frac{\text{Quantidade de órgãos que não cumpriram a meta e que têm cargos CCE/FCE vagos suficientes}}{\text{Quantidade de órgãos do SIAPE com funções CCE/FCE}} \times 100$$
 
 * Limitações: a distribuição de cargos é obtida do [portal gov360](https://gov360.gestao.gov.br/). Os nomes dos órgãos não são precisamente iguais aos registrados no SIAPE. A associação entre as duas fontes foi realizada por medidas de diferença de *strings* usando distância cosseno. Alguns órgãos não obtiveram êxito nessa associação automática: 
 

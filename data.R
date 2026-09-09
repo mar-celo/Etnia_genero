@@ -412,7 +412,7 @@ tabela_vagos[,mes := paste0("01 de ",mes_ano_cargos) %>%
                format("%Y%m") %>% 
                as.numeric()
              ]
-
+# ajuste 5: seleção de colunas de interesse
 Tab_ind3 <- 
   select(tabela_vagos,
          mes,
@@ -429,130 +429,21 @@ Tab_ind3 <-
   filter(orgao_vinculado_cargos_e_funcoes != "Agencia Brasileira De Inteligencia") %>%
   setorder(indice_suficiencia)
 
-# Salvar base tratada
+# ajuste 6: valor global sem distinguir por nível
+Tab_ind3_all <- 
+  Tab_ind3[,lapply(.SD,sum,na.rm = T),
+           .(orgao_vinculado_cargos_e_funcoes,
+             mes),
+           .SDcols =  c("Total_ocupados","total_negras","total_dist")] %>% 
+  .[,total_dist := ifelse(total_dist == 0,NA,total_dist)] %>% 
+  .[,necessidade_vagas := nec_meta(Total_ocupados,total_negras)] %>% 
+  .[,`:=`( cargos_disponiveis = total_dist - Total_ocupados)]
+
+# Salvar bases tratadas
 saveRDS(Tab_ind3, "data/Tab_ind3.rds")
+saveRDS(Tab_ind3_all, "data/Tab_ind3_all.rds")
 
 
-
-# 
-# 
-# ## alternativa 1: média do índice ponderado por total distrbuídos
-# list(Tab_ind3[mes == 202601,
-#               .(decreto_nivel = "Total",
-#                 indice_suficiencia = sum(indice_suficiencia*total_dist)/sum(total_dist))],
-#      Tab_ind3[mes == 202601,
-#               .(indice_suficiencia = sum(indice_suficiencia*total_dist)/sum(total_dist)),
-#               .(decreto_nivel)]) %>% rbindlist(fill = T) %>% 
-#   setorder(decreto_nivel) %>% 
-#   print()
-# 
-# 
-# ## alternativa 2: média do índice ponderado por total ocupados
-# list(Tab_ind3[mes == 202601,
-#               .(decreto_nivel = "Total",
-#                 indice_suficiencia = sum(indice_suficiencia*Total_ocupados)/sum(Total_ocupados))],
-# Tab_ind3[mes == 202601,
-#          .(indice_suficiencia = sum(indice_suficiencia*Total_ocupados)/sum(Total_ocupados)),
-#          .(decreto_nivel)]) %>% rbindlist(fill = T) %>% 
-#   setorder(decreto_nivel) %>% 
-#   print()
-# 
-# 
-# ## alternativa 3: média do índice não ponderado
-# list(Tab_ind3[mes == 202601,
-#               .(decreto_nivel = "Total",
-#                 indice_suficiencia = mean(indice_suficiencia)
-#                 )
-#               ],
-#      Tab_ind3[mes == 202601,
-#               .(indice_suficiencia = mean(indice_suficiencia)),
-#               .(decreto_nivel)
-#               ]) %>% rbindlist(fill = T) %>% 
-#   setorder(decreto_nivel) %>% 
-#   print()
-# 
-# 
-# 
-# ## alternativa 4: índice com base no agregado
-# list(Tab_ind3[mes == 202601,
-#          .(decreto_nivel = "Total",
-#            indice_suficiencia = sum(cargos_disponiveis)/sum(necessidade_vagas))
-#          ],
-#      Tab_ind3[mes == 202601,
-#               .(indice_suficiencia = sum(cargos_disponiveis)/sum(necessidade_vagas)),
-#               .(decreto_nivel)
-#      ]) %>% rbindlist(fill = T) %>% 
-#   setorder(decreto_nivel) %>% 
-#   print()
-# 
-# 
-# ## alternativa 5: diferença média entre disponíves e necessários
-# list(Tab_ind3[mes == 202601& orgao_vinculado_cargos_e_funcoes != "Presidencia Da Republica",
-#               .(decreto_nivel = "Total",
-#                 indice_suficiencia = mean(cargos_disponiveis - necessidade_vagas))],
-#      Tab_ind3[mes == 202601& orgao_vinculado_cargos_e_funcoes != "Presidencia Da Republica",
-#               .(indice_suficiencia = mean(cargos_disponiveis - necessidade_vagas)),
-#               .(decreto_nivel)]) %>% 
-#   rbindlist(fill = T) %>% 
-#   setorder(decreto_nivel) %>% 
-#   print()
-# 
-# 
-# 
-# ## alternativa 6: 'sinal' das necessidades (se disponíveis < necessários, -1) ponderado por necessidades
-# list(Tab_ind3[mes == 202601,
-#               .(decreto_nivel = "Total",
-#                 indice_suficiencia = mean(ifelse(cargos_disponiveis < necessidade_vagas,
-#                                                  -1,
-#                                                  ifelse(cargos_disponiveis == necessidade_vagas,
-#                                                         0,
-#                                                         1)
-#                                                  )
-#                                           )
-#                 )
-#               ],
-#      Tab_ind3[mes == 202601,
-#               .(indice_suficiencia = mean(ifelse(cargos_disponiveis < necessidade_vagas,
-#                                                  -1,
-#                                                  ifelse(cargos_disponiveis == necessidade_vagas,
-#                                                         0,
-#                                                         1)
-#                                                  )
-#                                           )
-#                 ),
-#               .(decreto_nivel)
-#               ]) %>% rbindlist(fill = T) %>% 
-#   setorder(decreto_nivel) %>% 
-#   print()
-# 
-# 
-# 
-# 
-# ## alternativa 7: 'sinal' das necessidades (se disponíveis < necessários, -1)
-# list(Tab_ind3[mes == 202601,
-#               .(decreto_nivel = "Total",
-#                 indice_suficiencia = sum(ifelse(cargos_disponiveis < necessidade_vagas,
-#                                                 -1,
-#                                                 ifelse(cargos_disponiveis == necessidade_vagas,
-#                                                        0,
-#                                                        1)
-#                                                 )*necessidade_vagas
-#                                          )/sum(necessidade_vagas)
-#                 )
-#               ],
-#      Tab_ind3[mes == 202601,
-#               .(indice_suficiencia = sum(ifelse(cargos_disponiveis < necessidade_vagas,
-#                                                 -1,
-#                                                 ifelse(cargos_disponiveis == necessidade_vagas,
-#                                                        0,
-#                                                        1)
-#                                                 )*necessidade_vagas
-#                                          )/sum(necessidade_vagas)
-#                 ),
-#               .(decreto_nivel)
-#               ]) %>% rbindlist(fill = T) %>% 
-#   setorder(decreto_nivel) %>% 
-#   print()
 
 ########################################################################.
 ### Indicador 4: equidade de acesso a cargos FCE ----
