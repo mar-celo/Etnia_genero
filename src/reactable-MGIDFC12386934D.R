@@ -10,7 +10,7 @@ library(htmlwidgets)
 #Filtro base df criado em data.R
 # Carregar base de dados direto do PEP
 
-df <- readr::read_delim("Z:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Infograficos/etnia_raca.csv",
+df <- readr::read_delim("Y:/PEP/PEP_reload/PEP_qvd_InOutrasFontes/Infograficos/etnia_raca.csv",
                         delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
                              
@@ -24,7 +24,7 @@ funcoes <- df |> filter(`Agrupamento Geral` == 'CCE & FCE', `Orgão Vinculado (C
     `Cor Origem Etnica` %in% c(4, 6)  ~ "Negras",
     .default = "Demais Raça/Cor"
   ),
-  month = format(as.Date(paste("2025", `Mês Cargos`, '01', sep = '-'),"%Y-%b-%d"))
+  month = format(as.Date(paste("2026", `Mês Cargos`, '01', sep = '-'),"%Y-%b-%d"))
 ) |> janitor::clean_names()
 
 
